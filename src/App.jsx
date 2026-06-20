@@ -7,6 +7,8 @@ import PublicLayout from './layouts/PublicLayout';
 // Admin Pages
 import Dashboard from './pages/Dashboard';
 import ArticlesAdmin from './pages/Articles';
+import Publish from './pages/Publish';
+
 
 // Public Pages
 import Home from './pages/public/Home';
@@ -28,8 +30,9 @@ export default function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="articles" element={<ArticlesAdmin />} />
-          {/* <Route path="generate" element={<Generate />} /> */}
+          <Route path="publish" element={<Publish />} />
         </Route>
+
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

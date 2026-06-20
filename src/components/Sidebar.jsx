@@ -4,7 +4,7 @@ import { LayoutDashboard, FileText, Settings, Shield, PlusCircle } from 'lucide-
 const NAV_ITEMS = [
   { path: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
   { path: '/admin/articles', icon: FileText, label: 'All Articles' },
-  { path: '/admin/generate', icon: PlusCircle, label: 'AI Generator' },
+  { path: '/admin/publish', icon: PlusCircle, label: 'Write Article' },
   { path: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 

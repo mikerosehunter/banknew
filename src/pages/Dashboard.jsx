@@ -69,23 +69,21 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* AI Generator Action */}
+      {/* Quick Actions */}
       <div className="glass-card p-8 border border-brand-500/30 bg-brand-500/5 relative overflow-hidden">
         <div className="relative z-10">
-          <h2 className="text-2xl font-bold text-white mb-2">AI Auto-Blogger</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">Write New Article</h2>
           <p className="text-slate-400 max-w-2xl mb-6">
-            The platform automatically finds bank errors in the database that don't have articles yet, and uses Gemini AI to write complete SEO-optimized guides.
+            Manually paste your ChatGPT generated content here to publish new SEO guides and track third-party errors.
           </p>
           <div className="flex items-center gap-4">
-            <button 
-              onClick={handleGenerate} 
-              disabled={generating}
-              className="btn-primary"
+            <a 
+              href="/admin/publish" 
+              className="btn-primary inline-flex items-center gap-2"
             >
               <PlusCircle size={18} />
-              {generating ? 'Generating...' : 'Auto-Generate 10 New Articles'}
-            </button>
-            {genMessage && <span className="text-sm text-brand-300">{genMessage}</span>}
+              Open Article Editor
+            </a>
           </div>
         </div>
       </div>
