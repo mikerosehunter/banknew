@@ -239,13 +239,17 @@ app.get('/api/categories', async (req, res) => {
     if (error) throw error;
     
     // Count articles per category
-    const { data: articles } = await supabase.from('bw_articles').select('category').eq('status', 'published');
+    const { data: articles, error: artError } = await supabase.from('bw_articles').select('category').eq('status', 'published');
+    if (artError) throw artError;
+    
     const counts = {};
     for (const a of articles || []) counts[a.category] = (counts[a.category] || 0) + 1;
     
     const cats = (catData || []).map(c => ({ ...c, count: counts[c.slug] || 0 }));
     res.json(cats);
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) { 
+    res.status(500).json({ error: e.message, hint: 'Category fetch failed', stack: e.stack }); 
+  }
 });
 
 // Create category

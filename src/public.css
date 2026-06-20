@@ -319,3 +319,31 @@
 .pub-breadcrumb { font-size: 13px; color: #64748b; display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
 .pub-breadcrumb a { color: #2563eb; text-decoration: none; }
 .pub-breadcrumb a:hover { text-decoration: underline; }
+
+/* ── Pulse skeleton animation ── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── Category grid ── */
+.pub-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+/* ── Bank grid improvements ── */
+.pub-bank-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.pub-bank-pill {
+  background: white; border: 1px solid #e2e8f0; border-radius: 10px;
+  padding: 16px 12px; text-align: center; text-decoration: none; color: #1e293b;
+  font-size: 13px; font-weight: 600; transition: all 0.15s; display: block;
+}
+.pub-bank-pill:hover { border-color: #2563eb; color: #2563eb; box-shadow: 0 4px 12px rgba(37,99,235,0.1); transform: translateY(-2px); }
+
+/* ── Scrollbar styling for sidebar ── */
+aside ::-webkit-scrollbar { width: 4px; }
+aside ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+aside ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+aside ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
