@@ -278,7 +278,7 @@ app.get('/api/articles', async (req, res) => {
   try {
     const { category, bank_id, search, status, featured, limit = 12, offset = 0 } = req.query;
     let q = supabase.from('bw_articles')
-      .select('id,title,slug,excerpt,meta_description,category,status,featured,seo_score,word_count,created_at,published_at,bank_id,bw_banks(name)', { count: 'exact' })
+      .select('id,title,slug,excerpt,meta_description,category,bank_name,status,featured,seo_score,word_count,created_at,published_at,bank_id', { count: 'exact' })
       .order('published_at', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
       .range(+offset, +offset + +limit - 1);
@@ -289,8 +289,7 @@ app.get('/api/articles', async (req, res) => {
     if (featured === 'true') q = q.eq('featured', true);
     const { data, count, error } = await q;
     if (error) throw error;
-    const articles = (data || []).map(a => ({ ...a, bank_name: a.bw_banks?.name, bw_banks: undefined }));
-    res.json({ articles, total: count || 0 });
+    res.json({ articles: data || [], total: count || 0 });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -299,18 +298,11 @@ app.get('/api/articles/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const isUuid = /^[0-9a-f-]{36}$/i.test(id);
-    let q = supabase.from('bw_articles').select('*,bw_banks(name,website,login_url,support_url)');
+    let q = supabase.from('bw_articles').select('*');
     q = isUuid ? q.eq('id', id) : q.eq('slug', id);
     const { data, error } = await q.single();
     if (error) return res.status(404).json({ error: 'Article not found' });
-    // Also fetch the error image if exists
-    let image_url = null;
-    if (data.error_id) {
-      const { data: img } = await supabase.from('bw_generated_images').select('url').eq('error_id', data.error_id).single();
-      image_url = img?.url || null;
-    }
-    // Update view count (optional - skip for now)
-    res.json({ ...data, bank_name: data.bw_banks?.name, bank_website: data.bw_banks?.website, bank_login_url: data.bw_banks?.login_url, image_url, faq_parsed: (() => { try { return JSON.parse(data.faq_schema || 'null'); } catch { return null; } })() });
+    res.json({ ...data, faq_parsed: (() => { try { return JSON.parse(data.faq_schema || 'null'); } catch { return null; } })() });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
