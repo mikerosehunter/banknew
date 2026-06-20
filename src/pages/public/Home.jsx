@@ -27,8 +27,33 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [activeLetter, setActiveLetter] = useState('Top');
   const searchRef = useRef(null);
   const navigate = useNavigate();
+
+  // Schema Generation
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "BankLoginOnline",
+    "url": "https://bankloginonline.com",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://bankloginonline.com/banks/{search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
+
+  const itemListSchema = articles.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": articles.map((a, i) => ({
+      "@type": "ListItem",
+      "position": i + 1,
+      "url": `https://bankloginonline.com/article/${a.slug}`
+    }))
+  } : null;
+
 
   useEffect(() => {
     Promise.all([
@@ -71,6 +96,10 @@ export default function Home() {
 
   return (
     <div>
+      {/* JSON-LD Schemas */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
+      {itemListSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />}
+      
       {/* ── Hero ── */}
       <section className="pub-hero">
         <div className="pub-hero-inner">
@@ -131,7 +160,7 @@ export default function Home() {
               <Zap size={14} /> Browse by Problem
             </div>
             <h2 style={{ fontFamily: 'Merriweather, serif', fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 900, color: '#0f172a', marginBottom: '12px' }}>
-              What's your banking issue?
+              Browse Bank Error Categories
             </h2>
             <p style={{ color: '#64748b', fontSize: '16px', maxWidth: '560px', margin: '0 auto' }}>
               Select a category below to find step-by-step fix guides.
@@ -161,10 +190,7 @@ export default function Home() {
                       )}
                     </div>
                   </div>
-                  <p style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
-                    {cat.description || `Find solutions for ${cat.label.toLowerCase()}.`}
-                  </p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#2563eb', fontSize: '12px', fontWeight: 600, marginTop: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#2563eb', fontSize: '12px', fontWeight: 600, marginTop: '8px' }}>
                     View guides <ArrowRight size={12} />
                   </div>
                 </Link>
@@ -181,7 +207,7 @@ export default function Home() {
           <main id="latest-guides">
             <h2 className="pub-section-title">
               <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <TrendingUp size={20} color="#2563eb" /> Latest Fix Guides
+                <TrendingUp size={20} color="#2563eb" /> Recently Updated Bank Troubleshooting Guides
               </span>
             </h2>
 
@@ -282,18 +308,53 @@ export default function Home() {
         </div>
       </div>
 
+      {/* ── E-E-A-T Section ── */}
+      <div style={{ background: '#0f172a', padding: '64px 24px', color: '#cbd5e1', textAlign: 'center' }}>
+        <div className="pub-container" style={{ maxWidth: '800px' }}>
+          <Shield size={40} color="#4ade80" style={{ margin: '0 auto 20px' }} />
+          <h2 style={{ color: 'white', fontFamily: 'Merriweather, serif', fontSize: '28px', marginBottom: '16px' }}>Verified & Trusted Solutions</h2>
+          <p style={{ lineHeight: 1.6, fontSize: '16px' }}>Our technical troubleshooting guides are verified and updated daily by digital banking specialists to ensure you get the most accurate and safe solutions for your banking issues. We monitor hundreds of institutions 24/7 so you're never left in the dark.</p>
+        </div>
+      </div>
+
       {/* ── All Banks Section ── */}
-      <div id="all-banks" style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0', padding: '64px 0' }}>
+      <div id="all-banks" style={{ background: '#f8fafc', padding: '64px 0' }}>
         <div className="pub-container">
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#2563eb', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>
-              <BookOpen size={14} /> All US Banks
+              <BookOpen size={14} /> Directory
             </div>
             <h2 style={{ fontFamily: 'Merriweather, serif', fontSize: 'clamp(22px, 3vw, 32px)', fontWeight: 900, color: '#0f172a', marginBottom: '8px' }}>Find Your Bank</h2>
-            <p style={{ color: '#64748b', fontSize: '15px' }}>Click on your bank to see all available fix guides.</p>
+            <p style={{ color: '#64748b', fontSize: '15px', marginBottom: '32px' }}>Select a letter to browse our directory of supported US banks.</p>
+            
+            {/* Alphabetical Tabs */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px', marginBottom: '32px' }}>
+              {['Top', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')].map(letter => (
+                <button
+                  key={letter}
+                  onClick={() => setActiveLetter(letter)}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid',
+                    borderColor: activeLetter === letter ? '#2563eb' : '#e2e8f0',
+                    background: activeLetter === letter ? '#2563eb' : 'white',
+                    color: activeLetter === letter ? 'white' : '#64748b',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {letter}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="pub-bank-grid">
-            {bankCategories.map(c => (
+            {bankCategories
+              .filter(c => activeLetter === 'Top' ? ['jpmorgan-chase-bank', 'bank-of-america', 'wells-fargo-bank', 'citibank', 'capital-one-bank', 'us-bank', 'pnc-bank', 'chime'].includes(c.slug) : c.label.toUpperCase().startsWith(activeLetter))
+              .map(c => (
               <Link key={c.slug} to={`/banks/${c.slug}`} className="pub-bank-pill">
                 <span style={{ display: 'block', fontSize: '20px', marginBottom: '4px' }}>🏦</span>
                 {c.label}
