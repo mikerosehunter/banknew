@@ -11,15 +11,5 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
-  ],
-  "crons": [
-    {
-      "path": "/api/monitoring/run",
-      "schedule": "*/30 * * * *"
-    },
-    {
-      "path": "/api/articles/generate-bulk",
-      "schedule": "0 * * * *"
-    }
   ]
 }
