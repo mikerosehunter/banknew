@@ -85,8 +85,8 @@ export default function Home() {
               <h3 className="pub-widget-title">Categories</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {categories.map(c => (
-                  <Link key={c.slug} to={`/category/${c.slug}`} style={{ display: 'flex', justifyContent: 'space-between', color: '#475569', textDecoration: 'none', fontWeight: 500 }}>
-                    <span>{c.icon} {c.label}</span>
+                  <Link key={c.slug} to={`/banks/${c.slug}`} style={{ display: 'flex', justifyContent: 'space-between', color: '#475569', textDecoration: 'none', fontWeight: 500 }}>
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80%' }}>{c.icon} {c.label}</span>
                     <span style={{ background: '#e2e8f0', padding: '2px 8px', borderRadius: '12px', fontSize: '12px' }}>{c.count}</span>
                   </Link>
                 ))}

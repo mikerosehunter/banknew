@@ -15,7 +15,7 @@ import Publish from './pages/Publish';
 // Public Pages
 import Home from './pages/public/Home';
 import PublicArticle from './pages/public/PublicArticle';
-// import CategoryArchive from './pages/public/CategoryArchive';
+import CategoryArchive from './pages/public/CategoryArchive';
 
 export default function App() {
   return (
@@ -25,7 +25,7 @@ export default function App() {
         <Route path="/" element={<PublicLayout />}>
           <Route index element={<Home />} />
           <Route path="article/:slug" element={<PublicArticle />} />
-          {/* <Route path="category/:slug" element={<CategoryArchive />} /> */}
+          <Route path="banks/:slug" element={<CategoryArchive />} />
         </Route>
 
         {/* Protected Admin Dashboard */}
