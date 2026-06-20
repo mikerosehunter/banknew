@@ -278,20 +278,19 @@ app.get('/api/articles', async (req, res) => {
   try {
     const { category, bank_id, search, status, featured, limit = 12, offset = 0 } = req.query;
     let q = supabase.from('bw_articles')
-      .select('id,title,slug,excerpt,meta_description,category,bank_name,status,featured,seo_score,word_count,created_at,published_at,bank_id', { count: 'exact' })
+      .select('id,title,slug,excerpt,meta_description,category,bank_name,status,created_at,published_at', { count: 'exact' })
       .order('published_at', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
       .range(+offset, +offset + +limit - 1);
     if (category) q = q.eq('category', category);
-    if (bank_id) q = q.eq('bank_id', bank_id);
     if (search) q = q.ilike('title', `%${search}%`);
     if (status) q = q.eq('status', status);
-    if (featured === 'true') q = q.eq('featured', true);
     const { data, count, error } = await q;
     if (error) throw error;
     res.json({ articles: data || [], total: count || 0 });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
+
 
 // Single article (by slug or id)
 app.get('/api/articles/:id', async (req, res) => {
@@ -420,4 +419,12 @@ app.post('/api/generate', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-module.exports = app;
+export default app;
+
+// Start server when run directly (local dev)
+if (process.argv[1] && process.argv[1].includes('index.js')) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`✅ API server running on http://localhost:${PORT}/api`);
+  });
+}
