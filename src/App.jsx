@@ -1,6 +1,10 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Sidebar from './components/Sidebar';
-import TopBar from './components/TopBar';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+// Layouts
+import AdminLayout from './layouts/AdminLayout';
+import PublicLayout from './layouts/PublicLayout';
+
+// Admin Pages
 import Dashboard from './pages/Dashboard';
 import Errors from './pages/Errors';
 import ErrorDetail from './pages/ErrorDetail';
@@ -10,27 +14,38 @@ import Banks from './pages/Banks';
 import Monitoring from './pages/Monitoring';
 import Publish from './pages/Publish';
 
+// Public Pages
+import Home from './pages/public/Home';
+import PublicArticle from './pages/public/PublicArticle';
+// We will create PublicBanks and PublicBankDetail later if needed
+// import PublicBanks from './pages/public/PublicBanks';
+
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="flex h-screen overflow-hidden">
-        <Sidebar />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <TopBar />
-          <main className="flex-1 overflow-y-auto">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/errors" element={<Errors />} />
-              <Route path="/errors/:id" element={<ErrorDetail />} />
-              <Route path="/articles" element={<Articles />} />
-              <Route path="/articles/:id" element={<ArticleDetail />} />
-              <Route path="/banks" element={<Banks />} />
-              <Route path="/monitoring" element={<Monitoring />} />
-              <Route path="/publish" element={<Publish />} />
-            </Routes>
-          </main>
-        </div>
-      </div>
+      <Routes>
+        {/* Public Consumer Site */}
+        <Route path="/" element={<PublicLayout />}>
+          <Route index element={<Home />} />
+          <Route path="article/:slug" element={<PublicArticle />} />
+          {/* <Route path="banks" element={<PublicBanks />} /> */}
+        </Route>
+
+        {/* Protected Admin Dashboard */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="errors" element={<Errors />} />
+          <Route path="errors/:id" element={<ErrorDetail />} />
+          <Route path="articles" element={<Articles />} />
+          <Route path="articles/:id" element={<ArticleDetail />} />
+          <Route path="banks" element={<Banks />} />
+          <Route path="monitoring" element={<Monitoring />} />
+          <Route path="publish" element={<Publish />} />
+        </Route>
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </BrowserRouter>
   );
 }
