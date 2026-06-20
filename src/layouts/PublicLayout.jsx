@@ -1,53 +1,107 @@
-import { Outlet, Link } from 'react-router-dom';
-import { Building2, Search, ArrowRight } from 'lucide-react';
+import { Outlet, Link, NavLink } from 'react-router-dom';
+import { Building2, Menu, X } from 'lucide-react';
+import { useState } from 'react';
+import '../public.css';
+
+const BANKS_NAV = [
+  { label: 'Chase', slug: 'chase' },
+  { label: 'Bank of America', slug: 'bank-of-america' },
+  { label: 'Wells Fargo', slug: 'wells-fargo' },
+  { label: 'Citibank', slug: 'citibank' },
+  { label: 'Capital One', slug: 'capital-one' },
+];
 
 export default function PublicLayout() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
-      {/* Public Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold group-hover:bg-blue-700 transition-colors">
-              <Building2 size={18} />
-            </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900">
-              Bank<span className="text-blue-600">Watch</span>
-            </span>
+    <div className="public-site">
+      {/* Header */}
+      <header className="pub-header">
+        <div className="pub-header-inner">
+          <Link to="/" className="pub-logo">
+            <div className="pub-logo-icon">🏦</div>
+            <span className="pub-logo-text">Bank<span>Login</span>Online</span>
           </Link>
-          
-          <nav className="hidden md:flex items-center gap-6">
-            <Link to="/" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Home</Link>
-            <Link to="/banks" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">All Banks</Link>
+
+          {/* Desktop Nav */}
+          <nav className="pub-nav" style={{ display: 'flex' }}>
+            <NavLink to="/">Home</NavLink>
+            <NavLink to="/banks">Banks</NavLink>
+            <NavLink to="/articles">Fix Guides</NavLink>
+            <NavLink to="/outages">Live Outages</NavLink>
           </nav>
 
-          <div className="flex items-center gap-4">
-            <Link to="/admin" className="text-xs font-medium text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1">
-              Admin Login <ArrowRight size={12} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Link to="/admin" style={{ fontSize: '12px', color: '#94a3b8', textDecoration: 'none' }}>
+              Admin ↗
             </Link>
+            <button onClick={() => setMenuOpen(v => !v)} className="pub-nav" style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
+              {menuOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-        <Outlet />
-      </main>
+      {/* Secondary nav bar */}
+      <div style={{ background: '#1e3a8a', color: 'white' }}>
+        <div className="pub-container" style={{ display: 'flex', gap: '4px', overflowX: 'auto', padding: '0 24px' }}>
+          {['Chase', 'Bank of America', 'Wells Fargo', 'Citibank', 'Capital One', 'Chime', 'Ally Bank', 'USAA', 'US Bank', 'PNC'].map(bank => (
+            <Link key={bank} to={`/banks?q=${encodeURIComponent(bank)}`}
+              style={{ whiteSpace: 'nowrap', padding: '8px 14px', fontSize: '12px', fontWeight: 500, color: 'rgba(255,255,255,0.75)', textDecoration: 'none', borderRadius: '4px', transition: 'all 0.15s' }}
+              onMouseEnter={e => { e.target.style.background = 'rgba(255,255,255,0.1)'; e.target.style.color = 'white'; }}
+              onMouseLeave={e => { e.target.style.background = 'transparent'; e.target.style.color = 'rgba(255,255,255,0.75)'; }}
+            >
+              {bank}
+            </Link>
+          ))}
+        </div>
+      </div>
 
-      {/* Public Footer */}
-      <footer className="bg-white border-t border-slate-200 py-12 mt-12">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4 opacity-50 grayscale">
-            <div className="w-6 h-6 rounded bg-slate-400 flex items-center justify-center text-white">
-              <Building2 size={14} />
+      {/* Page Content */}
+      <Outlet />
+
+      {/* Footer */}
+      <footer className="pub-footer">
+        <div className="pub-footer-inner">
+          <div className="pub-footer-grid">
+            <div>
+              <div className="pub-footer-logo">Bank<span>Login</span>Online</div>
+              <p className="pub-footer-desc">
+                Real-time monitoring of US bank login errors, app crashes, and service outages. AI-powered fix guides updated 24/7.
+              </p>
             </div>
-            <span className="font-bold tracking-tight text-slate-600">BankWatch AI</span>
+            <div>
+              <div className="pub-footer-heading">Top Banks</div>
+              <ul>
+                {['Chase', 'Bank of America', 'Wells Fargo', 'Citibank', 'Capital One'].map(b => (
+                  <li key={b}><Link to={`/banks?q=${encodeURIComponent(b)}`}>{b}</Link></li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <div className="pub-footer-heading">Common Errors</div>
+              <ul>
+                <li><a href="#">Login Not Working</a></li>
+                <li><a href="#">2FA Code Not Received</a></li>
+                <li><a href="#">Transfer Failed</a></li>
+                <li><a href="#">App Crashing</a></li>
+                <li><a href="#">Account Locked</a></li>
+              </ul>
+            </div>
+            <div>
+              <div className="pub-footer-heading">About</div>
+              <ul>
+                <li><a href="#">How It Works</a></li>
+                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="#">Disclaimer</a></li>
+                <Link to="/admin" style={{ color: '#475569', fontSize: '14px', textDecoration: 'none' }}>Admin</Link>
+              </ul>
+            </div>
           </div>
-          <p className="text-sm text-slate-500 mb-6 max-w-md mx-auto">
-            Monitoring US bank login errors, app crashes, and service outages in real-time. Educational purposes only.
-          </p>
-          <div className="text-xs text-slate-400">
-            &copy; {new Date().getFullYear()} BankLoginOnline. All rights reserved.
+          <div className="pub-footer-bottom">
+            <div>© {new Date().getFullYear()} BankLoginOnline.com · For educational purposes only</div>
+            <div>Not affiliated with any bank. Funds are FDIC insured.</div>
           </div>
         </div>
       </footer>

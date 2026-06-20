@@ -1,35 +1,72 @@
-import axios from 'axios';
-
-// In production (Vercel) the API is on the same domain at /api
-// In local dev, Vite proxies /api to localhost:3000 (vercel dev)
+// API Client
 const API_BASE = '/api';
 
-const api = axios.create({ baseURL: API_BASE, timeout: 30000 });
+async function fetchJSON(endpoint, options = {}) {
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'API Error');
+    return data;
+  } catch (err) {
+    console.error(`API Error on ${endpoint}:`, err);
+    throw err;
+  }
+}
 
-export const getDashboard = () => api.get('/dashboard').then(r => r.data);
+// ── Public API ──
 
-export const getBanks = (params = {}) => api.get('/banks', { params }).then(r => r.data);
-export const getBank = (id) => api.get(`/banks/${id}`).then(r => r.data);
-export const createBank = (data) => api.post('/banks', data).then(r => r.data);
-export const updateBank = (id, data) => api.put(`/banks/${id}`, data).then(r => r.data);
+export function getStats() {
+  return fetchJSON('/stats');
+}
 
-export const getErrors = (params = {}) => api.get('/errors', { params }).then(r => r.data);
-export const getError = (id) => api.get(`/errors/${id}`).then(r => r.data);
-export const analyzeError = (id) => api.post(`/errors/${id}/analyze`).then(r => r.data);
-export const generateArticle = (id) => api.post(`/errors/${id}/generate-article`).then(r => r.data);
-export const generateImage = (id) => api.post(`/errors/${id}/generate-image`).then(r => r.data);
-export const updateErrorStatus = (id, status) => api.patch(`/errors/${id}`, { status }).then(r => r.data);
+export function getCategories() {
+  return fetchJSON('/categories');
+}
 
-export const getArticleStats = () => api.get('/articles', { params: { limit: 1 } }).then(r => ({ total: r.data.total || 0 }));
-export const getErrorStats = () => api.get('/errors', { params: { limit: 1 } }).then(r => ({ total: r.data.total || 0 }));
-export const getArticles = (params = {}) => api.get('/articles', { params }).then(r => r.data);
-export const getArticle = (id) => api.get(`/articles/${id}`).then(r => r.data);
-export const generateBulkArticles = (limit = 5) => api.post('/articles/generate-bulk', { limit }).then(r => r.data);
-export const publishArticle = (id, options = {}) => api.post(`/articles/${id}/publish`, options).then(r => r.data);
-export const getPublishQueue = () => api.get('/articles/publish/queue').then(r => r.data).catch(() => []);
+export function getArticles(params = {}) {
+  const query = new URLSearchParams(Object.entries(params).filter(([_, v]) => v !== undefined && v !== ''));
+  return fetchJSON(`/articles?${query}`);
+}
 
-export const getMonitoringRuns = (params = {}) => api.get('/monitoring/runs', { params }).then(r => r.data);
-export const getMonitoringStats = () => api.get('/monitoring/runs', {}).then(r => r.data?.stats || {});
-export const triggerMonitoring = (bankId = null) => api.post('/monitoring/run', bankId ? { bankId } : {}).then(r => r.data);
+export function getArticle(idOrSlug) {
+  return fetchJSON(`/articles/${idOrSlug}`);
+}
 
-export default api;
+export function getBanks() {
+  return fetchJSON('/banks');
+}
+
+// ── Admin API ──
+
+export function createArticle(data) {
+  return fetchJSON('/articles', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateArticle(id, data) {
+  return fetchJSON(`/articles/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteArticle(id) {
+  return fetchJSON(`/articles/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export function generateArticles(count = 5) {
+  return fetchJSON('/generate', {
+    method: 'POST',
+    body: JSON.stringify({ count }),
+  });
+}
