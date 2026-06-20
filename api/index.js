@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 import slugify from 'slugify';
 
 const app = express();
@@ -24,11 +25,17 @@ const CATEGORIES = [
   { slug: 'bank-outages',    label: 'Bank Outages',        icon: '⚡', description: 'Full service outages and downtime reports.' },
 ];
 
-// ── Gemini helper ───────────────────────────────────────────────────────────
+// ── AI helpers ───────────────────────────────────────────────────────────
 function getGemini() {
   const k = process.env.GEMINI_API_KEY;
   if (!k || k.startsWith('your_')) return null;
   return new GoogleGenerativeAI(k);
+}
+
+function getOpenAI() {
+  const k = process.env.OPENAI_API_KEY;
+  if (!k || k.startsWith('your_')) return null;
+  return new OpenAI({ apiKey: k });
 }
 
 // ── Article content builder ─────────────────────────────────────────────────
@@ -352,21 +359,35 @@ app.post('/api/generate', async (req, res) => {
     // Background generation
     (async () => {
       const genAI = getGemini();
+      const openAI = getOpenAI();
       for (const error of toProcess) {
         try {
           const bank = error.bw_banks;
           const params = { bankName: bank.name, errorTitle: error.title, errorCode: error.error_code, errorType: error.type, severity: error.severity, affectedCount: error.affected_count, website: bank.website, loginUrl: bank.login_url, supportUrl: bank.support_url };
           let article = buildArticle(params);
+          const prompt = `Write a complete 1500+ word SEO guide article in Markdown format about this banking error:\n\nBank: ${bank.name}\nError: ${error.title}\nError Code: ${error.error_code}\nSeverity: ${error.severity}\nType: ${error.type}\n\nInclude: intro, what the error is (with a table), root causes, 6 step-by-step solutions with ### headers, prevention tips, and a 6-question FAQ. Write naturally, engagingly, and optimize for the search query "${bank.name} ${error.title} fix". Do not include the article title in the output.`;
 
-          // Optionally enhance with Gemini
-          if (genAI) {
+          // Try OpenAI first, then Gemini
+          if (openAI) {
+            try {
+              const response = await openAI.chat.completions.create({
+                model: 'gpt-4o-mini',
+                messages: [
+                  { role: 'system', content: 'You are an expert banking tech writer and SEO specialist.' },
+                  { role: 'user', content: prompt }
+                ],
+                temperature: 0.7,
+              });
+              article.content = response.choices[0].message.content;
+              article.word_count = article.content.split(/\s+/).length;
+            } catch (aiErr) { console.error('OpenAI error:', aiErr.message); }
+          } else if (genAI) {
             try {
               const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-              const prompt = `Write a complete 1500+ word SEO guide article in Markdown format about this banking error:\n\nBank: ${bank.name}\nError: ${error.title}\nError Code: ${error.error_code}\nSeverity: ${error.severity}\nType: ${error.type}\n\nInclude: intro, what the error is (with a table), root causes, 6 step-by-step solutions with ### headers, prevention tips, and a 6-question FAQ. Write naturally, engagingly, and optimize for the search query "${bank.name} ${error.title} fix". Do not include the article title in the output.`;
               const result = await model.generateContent(prompt);
               article.content = result.response.text();
               article.word_count = article.content.split(/\s+/).length;
-            } catch (gemErr) { /* use mock */ }
+            } catch (gemErr) { console.error('Gemini error:', gemErr.message); }
           }
 
           const slug = `${slugify(article.title, { lower: true, strict: true }).substring(0, 80)}-${Date.now()}`;
