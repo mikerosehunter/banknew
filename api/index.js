@@ -15,15 +15,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-// ── Categories ──────────────────────────────────────────────────────────────
-const CATEGORIES = [
-  { slug: 'login-issues',    label: 'Login Issues',       icon: '🔐', description: 'Cannot log in to your bank account? Find fixes here.' },
-  { slug: 'app-problems',    label: 'App Problems',        icon: '📱', description: 'Mobile banking app crashing or not working.' },
-  { slug: 'transfer-errors', label: 'Transfer Errors',     icon: '💸', description: 'Wire transfers, Zelle, and ACH payment failures.' },
-  { slug: 'account-locked',  label: 'Account Locked',      icon: '🔒', description: 'Account suspended or temporarily locked.' },
-  { slug: '2fa-problems',    label: '2FA Problems',        icon: '📲', description: 'Two-factor authentication codes not working.' },
-  { slug: 'bank-outages',    label: 'Bank Outages',        icon: '⚡', description: 'Full service outages and downtime reports.' },
-];
+// Categories are now managed in DB table: bw_categories
 
 // ── AI helpers ───────────────────────────────────────────────────────────
 function getGemini() {
@@ -230,26 +222,52 @@ A: Contact ${bankName} support at [${supportUrl || website}](${supportUrl || web
 // Stats
 app.get('/api/stats', async (req, res) => {
   try {
-    const [{ count: articles }, { count: banks }, { count: published }] = await Promise.all([
+    const [{ count: articles }, { count: banks }, { count: published }, { count: categories }] = await Promise.all([
       supabase.from('bw_articles').select('*', { count: 'exact', head: true }),
       supabase.from('bw_banks').select('*', { count: 'exact', head: true }),
       supabase.from('bw_articles').select('*', { count: 'exact', head: true }).eq('status', 'published'),
+      supabase.from('bw_categories').select('*', { count: 'exact', head: true }),
     ]);
-    res.json({ articles: articles || 0, banks: banks || 0, published: published || 0, categories: CATEGORIES.length });
+    res.json({ articles: articles || 0, banks: banks || 0, published: published || 0, categories: categories || 0 });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Categories
+// Categories list
 app.get('/api/categories', async (req, res) => {
   try {
+    const { data: catData, error } = await supabase.from('bw_categories').select('*').order('label');
+    if (error) throw error;
+    
     // Count articles per category
     const { data: articles } = await supabase.from('bw_articles').select('category').eq('status', 'published');
     const counts = {};
     for (const a of articles || []) counts[a.category] = (counts[a.category] || 0) + 1;
-    const cats = CATEGORIES.map(c => ({ ...c, count: counts[c.slug] || 0 }));
+    
+    const cats = (catData || []).map(c => ({ ...c, count: counts[c.slug] || 0 }));
     res.json(cats);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
+
+// Create category
+app.post('/api/categories', async (req, res) => {
+  try {
+    const { label, icon, description } = req.body;
+    const slug = slugify(label, { lower: true, strict: true });
+    const { data, error } = await supabase.from('bw_categories').insert({ slug, label, icon, description }).select().single();
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Delete category
+app.delete('/api/categories/:slug', async (req, res) => {
+  try {
+    const { error } = await supabase.from('bw_categories').delete().eq('slug', req.params.slug);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 
 // Articles list
 app.get('/api/articles', async (req, res) => {

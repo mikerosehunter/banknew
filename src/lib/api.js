@@ -70,3 +70,16 @@ export function generateArticles(count = 5) {
     body: JSON.stringify({ count }),
   });
 }
+
+export function createCategory(data) {
+  return fetchJSON('/categories', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteCategory(slug) {
+  return fetchJSON(`/categories/${slug}`, {
+    method: 'DELETE',
+  });
+}

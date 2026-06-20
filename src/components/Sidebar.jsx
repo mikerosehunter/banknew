@@ -1,9 +1,10 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileText, Settings, Shield, PlusCircle } from 'lucide-react';
+import { LayoutDashboard, FileText, Settings, Shield, PlusCircle, FolderTree } from 'lucide-react';
 
 const NAV_ITEMS = [
   { path: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
   { path: '/admin/articles', icon: FileText, label: 'All Articles' },
+  { path: '/admin/categories', icon: FolderTree, label: 'Categories' },
   { path: '/admin/publish', icon: PlusCircle, label: 'Write Article' },
   { path: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
