@@ -178,7 +178,7 @@ export default function Home() {
       <div className="pub-container">
         <div className="pub-grid">
           {/* Main Feed */}
-          <main>
+          <main id="latest-guides">
             <h2 className="pub-section-title">
               <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <TrendingUp size={20} color="#2563eb" /> Latest Fix Guides
@@ -283,7 +283,7 @@ export default function Home() {
       </div>
 
       {/* ── All Banks Section ── */}
-      <div style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0', padding: '64px 0' }}>
+      <div id="all-banks" style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0', padding: '64px 0' }}>
         <div className="pub-container">
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#2563eb', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>

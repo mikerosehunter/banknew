@@ -1,18 +1,33 @@
-import { Outlet, Link, NavLink } from 'react-router-dom';
+import { Outlet, Link, NavLink, useLocation } from 'react-router-dom';
 import { Building2, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import '../public.css';
 
 const BANKS_NAV = [
-  { label: 'Chase', slug: 'chase' },
+  { label: 'Chase', slug: 'jpmorgan-chase-bank' },
   { label: 'Bank of America', slug: 'bank-of-america' },
-  { label: 'Wells Fargo', slug: 'wells-fargo' },
+  { label: 'Wells Fargo', slug: 'wells-fargo-bank' },
   { label: 'Citibank', slug: 'citibank' },
-  { label: 'Capital One', slug: 'capital-one' },
+  { label: 'Capital One', slug: 'capital-one-bank' },
+  { label: 'U.S. Bank', slug: 'us-bank' },
+  { label: 'PNC Bank', slug: 'pnc-bank' },
+  { label: 'Chime', slug: 'chime' },
+  { label: 'Ally Bank', slug: 'ally-bank' }
+];
+
+const TOPICS_NAV = [
+  { label: 'Login Not Working', slug: 'login-access-problems' },
+  { label: 'App Crashing', slug: 'mobile-app-problems' },
+  { label: 'Transfer Failed', slug: 'failed-transaction-issues' },
+  { label: 'Account Locked', slug: 'account-closure-issues' },
+  { label: '2FA Problems', slug: 'security-verification-issues' }
 ];
 
 export default function PublicLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
+
+  const isHome = location.pathname === '/';
 
   return (
     <div className="public-site">
@@ -27,9 +42,9 @@ export default function PublicLayout() {
           {/* Desktop Nav */}
           <nav className="pub-nav" style={{ display: 'flex' }}>
             <NavLink to="/">Home</NavLink>
-            <NavLink to="/banks">Banks</NavLink>
-            <NavLink to="/articles">Fix Guides</NavLink>
-            <NavLink to="/outages">Live Outages</NavLink>
+            {isHome ? <a href="#all-banks">Banks</a> : <Link to="/#all-banks">Banks</Link>}
+            {isHome ? <a href="#latest-guides">Fix Guides</a> : <Link to="/#latest-guides">Fix Guides</Link>}
+            <NavLink to="/banks/bank-outages-support">Live Outages</NavLink>
           </nav>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -46,13 +61,13 @@ export default function PublicLayout() {
       {/* Secondary nav bar */}
       <div style={{ background: '#1e3a8a', color: 'white' }}>
         <div className="pub-container" style={{ display: 'flex', gap: '4px', overflowX: 'auto', padding: '0 24px' }}>
-          {['Chase', 'Bank of America', 'Wells Fargo', 'Citibank', 'Capital One', 'Chime', 'Ally Bank', 'USAA', 'US Bank', 'PNC'].map(bank => (
-            <Link key={bank} to={`/banks?q=${encodeURIComponent(bank)}`}
+          {BANKS_NAV.map(bank => (
+            <Link key={bank.slug} to={`/banks/${bank.slug}`}
               style={{ whiteSpace: 'nowrap', padding: '8px 14px', fontSize: '12px', fontWeight: 500, color: 'rgba(255,255,255,0.75)', textDecoration: 'none', borderRadius: '4px', transition: 'all 0.15s' }}
               onMouseEnter={e => { e.target.style.background = 'rgba(255,255,255,0.1)'; e.target.style.color = 'white'; }}
               onMouseLeave={e => { e.target.style.background = 'transparent'; e.target.style.color = 'rgba(255,255,255,0.75)'; }}
             >
-              {bank}
+              {bank.label}
             </Link>
           ))}
         </div>
@@ -74,27 +89,25 @@ export default function PublicLayout() {
             <div>
               <div className="pub-footer-heading">Top Banks</div>
               <ul>
-                {['Chase', 'Bank of America', 'Wells Fargo', 'Citibank', 'Capital One'].map(b => (
-                  <li key={b}><Link to={`/banks?q=${encodeURIComponent(b)}`}>{b}</Link></li>
+                {BANKS_NAV.slice(0, 5).map(b => (
+                  <li key={b.slug}><Link to={`/banks/${b.slug}`}>{b.label}</Link></li>
                 ))}
               </ul>
             </div>
             <div>
               <div className="pub-footer-heading">Common Errors</div>
               <ul>
-                <li><a href="#">Login Not Working</a></li>
-                <li><a href="#">2FA Code Not Received</a></li>
-                <li><a href="#">Transfer Failed</a></li>
-                <li><a href="#">App Crashing</a></li>
-                <li><a href="#">Account Locked</a></li>
+                {TOPICS_NAV.map(t => (
+                  <li key={t.slug}><Link to={`/banks/${t.slug}`}>{t.label}</Link></li>
+                ))}
               </ul>
             </div>
             <div>
               <div className="pub-footer-heading">About</div>
               <ul>
-                <li><a href="#">How It Works</a></li>
-                <li><a href="#">Privacy Policy</a></li>
-                <li><a href="#">Disclaimer</a></li>
+                <li><Link to="/">How It Works</Link></li>
+                <li><Link to="/">Privacy Policy</Link></li>
+                <li><Link to="/">Disclaimer</Link></li>
                 <Link to="/admin" style={{ color: '#475569', fontSize: '14px', textDecoration: 'none' }}>Admin</Link>
               </ul>
             </div>
