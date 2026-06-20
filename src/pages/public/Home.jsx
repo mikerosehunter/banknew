@@ -82,22 +82,25 @@ export default function Home() {
           {/* Sidebar */}
           <aside>
             <div className="pub-widget">
-              <h3 className="pub-widget-title">Categories</h3>
+              <h3 className="pub-widget-title">Active Categories</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {categories.map(c => (
+                {categories.filter(c => c.count > 0).map(c => (
                   <Link key={c.slug} to={`/banks/${c.slug}`} style={{ display: 'flex', justifyContent: 'space-between', color: '#475569', textDecoration: 'none', fontWeight: 500 }}>
                     <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80%' }}>{c.icon} {c.label}</span>
                     <span style={{ background: '#e2e8f0', padding: '2px 8px', borderRadius: '12px', fontSize: '12px' }}>{c.count}</span>
                   </Link>
                 ))}
+                {categories.filter(c => c.count > 0).length === 0 && (
+                  <div style={{ color: '#94a3b8', fontSize: '14px' }}>No categories have published articles yet.</div>
+                )}
               </div>
             </div>
 
             <div className="pub-widget">
-              <h3 className="pub-widget-title">Popular Banks</h3>
-              <div className="pub-bank-grid">
-                {['Chase', 'Bank of America', 'Wells Fargo', 'Citibank'].map(b => (
-                  <Link key={b} to={`/banks?q=${b}`} className="pub-bank-pill">{b}</Link>
+              <h3 className="pub-widget-title">All Supported Banks</h3>
+              <div className="pub-bank-grid" style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '8px' }}>
+                {categories.map(c => (
+                  <Link key={c.slug} to={`/banks/${c.slug}`} className="pub-bank-pill" style={{ textDecoration: 'none', fontSize: '12px' }}>{c.label}</Link>
                 ))}
               </div>
             </div>
