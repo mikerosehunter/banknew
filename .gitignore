@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env.local
+.env
+*.db
+*.log
+.DS_Store
+.vercel/
+seed_generator.js
+seed.sql
+seed_bw.sql
