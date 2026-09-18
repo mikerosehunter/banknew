@@ -48,9 +48,6 @@ export default function PublicLayout() {
           </nav>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Link to="/admin" style={{ fontSize: '12px', color: '#94a3b8', textDecoration: 'none' }}>
-              Admin ↗
-            </Link>
             <button onClick={() => setMenuOpen(v => !v)} className="pub-nav" style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -108,7 +105,6 @@ export default function PublicLayout() {
                 <li><Link to="/">How It Works</Link></li>
                 <li><Link to="/">Privacy Policy</Link></li>
                 <li><Link to="/">Disclaimer</Link></li>
-                <Link to="/admin" style={{ color: '#475569', fontSize: '14px', textDecoration: 'none' }}>Admin</Link>
               </ul>
             </div>
           </div>
