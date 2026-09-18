@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { getArticle } from '../../lib/api';
 
 export default function PublicArticle() {
@@ -151,7 +152,7 @@ export default function PublicArticle() {
           )}
 
           <div className="pub-prose">
-            <ReactMarkdown>{article.content}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{article.content}</ReactMarkdown>
           </div>
           
         </div>

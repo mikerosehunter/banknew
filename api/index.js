@@ -378,7 +378,31 @@ app.post('/api/generate', async (req, res) => {
           const bank = error.bw_banks;
           const params = { bankName: bank.name, errorTitle: error.title, errorCode: error.error_code, errorType: error.type, severity: error.severity, affectedCount: error.affected_count, website: bank.website, loginUrl: bank.login_url, supportUrl: bank.support_url };
           let article = buildArticle(params);
-          const prompt = `Write a complete 1500+ word SEO guide article in Markdown format about this banking error:\n\nBank: ${bank.name}\nError: ${error.title}\nError Code: ${error.error_code}\nSeverity: ${error.severity}\nType: ${error.type}\n\nInclude: intro, what the error is (with a table), root causes, 6 step-by-step solutions with ### headers, prevention tips, and a 6-question FAQ. Write naturally, engagingly, and optimize for the search query "${bank.name} ${error.title} fix". Do not include the article title in the output.`;
+          const prompt = `You are a Senior SEO Content Architect specializing in YMYL (Your Money or Your Life) financial tech support. 
+Write a highly optimized, comprehensive 1500+ word troubleshooting guide in Markdown for the following banking error:
+
+**Target Bank:** ${bank.name}
+**Error Title:** ${error.title}
+**Error Code:** ${error.error_code || 'N/A'}
+**Error Severity:** ${error.severity}
+**Category:** ${error.type}
+
+**STRICT FORMATTING & SEO GUIDELINES:**
+1. **No Title:** Do not include a # H1 title (it is handled by the frontend). Start directly with an engaging introduction.
+2. **Alert Boxes:** Use markdown blockquotes with emojis for important warnings (e.g., "> ⚠️ **Security Warning:** Never share your OTP...").
+3. **Data Tables:** Include at least one markdown table summarizing the error details (Code, Meaning, Affected Platforms, Average Resolution Time).
+4. **Step-by-Step Fixes:** Provide exactly 6 highly detailed, sequential solutions. Use ### H3 headers for each step. Number them clearly (e.g., "### 1. Clear Browser Cache & App Data"). 
+5. **Formatting:** Use bold text for UI elements the user needs to click (e.g., **Settings** > **Security**).
+6. **YMYL Compliance:** Maintain a highly authoritative, calm, and helpful tone. Never give financial advice. Focus strictly on technical troubleshooting (apps, browsers, network, server status).
+7. **Required Sections:** 
+   - Introduction (hook the user and reassure them)
+   - Understanding the Error (with table)
+   - 6 Step-by-Step Fixes
+   - How to Check Official ${bank.name} Server Status
+   - Prevention Tips
+   - Frequently Asked Questions (FAQ - 4 questions)
+
+Optimize heavily for the search query: "${bank.name} ${error.title} fix" and "${bank.name} ${error.error_code || 'error'}". Output only the raw Markdown content.`;
 
           // Try OpenAI first, then Gemini
           if (openAI) {
