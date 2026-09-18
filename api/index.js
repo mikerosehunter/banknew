@@ -443,6 +443,46 @@ Optimize heavily for the search query: "${bank.name} ${error.title} fix" and "${
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// Dynamic Sitemap
+app.get(['/sitemap.xml', '/api/sitemap.xml'], async (req, res) => {
+  try {
+    const baseUrl = 'https://bankloginonline.com';
+    
+    const { data: allCats } = await supabase.from('bw_categories').select('slug');
+    const { data: articles } = await supabase.from('bw_articles').select('slug, updated_at, published_at').eq('status', 'published');
+
+    const TOPIC_SLUGS = [
+      'login-access-problems', 'account-issues', 'mobile-app-problems', 
+      'security-verification-issues', 'card-atm-problems', 'payments-transactions'
+    ];
+    
+    const topics = (allCats || []).filter(c => TOPIC_SLUGS.includes(c.slug));
+    const banks = (allCats || []).filter(c => !TOPIC_SLUGS.includes(c.slug));
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+
+    // 1. Homepage & Indexes
+    xml += `  <url>\n    <loc>${baseUrl}/</loc>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n`;
+    xml += `  <url>\n    <loc>${baseUrl}/banks</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.9</priority>\n  </url>\n`;
+
+    // 2. Categories & Banks
+    for (const t of topics) { xml += `  <url>\n    <loc>${baseUrl}/category/${t.slug}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`; }
+    for (const b of banks) { xml += `  <url>\n    <loc>${baseUrl}/banks/${b.slug}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`; }
+
+    // 3. Articles
+    for (const a of (articles || [])) {
+      const lastMod = a.updated_at || a.published_at || new Date().toISOString();
+      xml += `  <url>\n    <loc>${baseUrl}/guides/${a.slug}</loc>\n    <lastmod>${lastMod.split('T')[0]}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.6</priority>\n  </url>\n`;
+    }
+
+    xml += `</urlset>`;
+    
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch(e) { res.status(500).send('Error generating sitemap'); }
+});
+
 export default app;
 
 // Start server when run directly (local dev)
