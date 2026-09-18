@@ -16,6 +16,8 @@ import Publish from './pages/Publish';
 import Home from './pages/public/Home';
 import PublicArticle from './pages/public/PublicArticle';
 import CategoryArchive from './pages/public/CategoryArchive';
+import PrivacyPolicy from './pages/public/PrivacyPolicy';
+import Disclaimer from './pages/public/Disclaimer';
 
 export default function App() {
   return (
@@ -29,6 +31,10 @@ export default function App() {
           <Route path="banks/:slug" element={<CategoryArchive />} />
           <Route path="category/:slug" element={<CategoryArchive />} />
           <Route path="issues/:slug" element={<CategoryArchive />} />
+          <Route path="privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="privacy" element={<PrivacyPolicy />} />
+          <Route path="disclaimer" element={<Disclaimer />} />
+          <Route path="banking-disclaimer" element={<Disclaimer />} />
         </Route>
 
         {/* Protected Admin Dashboard */}

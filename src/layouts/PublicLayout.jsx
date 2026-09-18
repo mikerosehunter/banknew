@@ -103,8 +103,8 @@ export default function PublicLayout() {
               <div className="pub-footer-heading">About</div>
               <ul>
                 <li><Link to="/">How It Works</Link></li>
-                <li><Link to="/">Privacy Policy</Link></li>
-                <li><Link to="/">Disclaimer</Link></li>
+                <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+                <li><Link to="/disclaimer">Disclaimer</Link></li>
               </ul>
             </div>
           </div>
