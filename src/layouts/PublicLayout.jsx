@@ -109,7 +109,7 @@ export default function PublicLayout() {
             </div>
           </div>
           <div className="pub-footer-bottom">
-            <div>© {new Date().getFullYear()} BankLoginOnline.com · For educational purposes only</div>
+            <div>© {new Date().getFullYear()} BankLoginOnline.com — 24/7 Troubleshooting Guides · For educational purposes only</div>
             <div>Not affiliated with any bank. Funds are FDIC insured.</div>
           </div>
         </div>
