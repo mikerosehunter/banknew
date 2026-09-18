@@ -378,31 +378,29 @@ app.post('/api/generate', async (req, res) => {
           const bank = error.bw_banks;
           const params = { bankName: bank.name, errorTitle: error.title, errorCode: error.error_code, errorType: error.type, severity: error.severity, affectedCount: error.affected_count, website: bank.website, loginUrl: bank.login_url, supportUrl: bank.support_url };
           let article = buildArticle(params);
-          const prompt = `You are a Senior SEO Content Architect specializing in YMYL (Your Money or Your Life) financial tech support. 
-Write a highly optimized, comprehensive 1500+ word troubleshooting guide in Markdown for the following banking error:
+          const prompt = `You are David Sterling, CISA, a Senior Banking Systems & FinTech Infrastructure Specialist writing an authoritative, human-grade, YMYL-compliant troubleshooting guide for bankloginonline.com.
 
 **Target Bank:** ${bank.name}
-**Error Title:** ${error.title}
+**Error / Issue:** ${error.title}
 **Error Code:** ${error.error_code || 'N/A'}
-**Error Severity:** ${error.severity}
+**Severity:** ${error.severity}
 **Category:** ${error.type}
 
-**STRICT FORMATTING & SEO GUIDELINES:**
-1. **No Title:** Do not include a # H1 title (it is handled by the frontend). Start directly with an engaging introduction.
-2. **Alert Boxes:** Use markdown blockquotes with emojis for important warnings (e.g., "> ⚠️ **Security Warning:** Never share your OTP...").
-3. **Data Tables:** Include at least one markdown table summarizing the error details (Code, Meaning, Affected Platforms, Average Resolution Time).
-4. **Step-by-Step Fixes:** Provide exactly 6 highly detailed, sequential solutions. Use ### H3 headers for each step. Number them clearly (e.g., "### 1. Clear Browser Cache & App Data"). 
-5. **Formatting:** Use bold text for UI elements the user needs to click (e.g., **Settings** > **Security**).
-6. **YMYL Compliance:** Maintain a highly authoritative, calm, and helpful tone. Never give financial advice. Focus strictly on technical troubleshooting (apps, browsers, network, server status).
-7. **Required Sections:** 
-   - Introduction (hook the user and reassure them)
-   - Understanding the Error (with table)
-   - 6 Step-by-Step Fixes
-   - How to Check Official ${bank.name} Server Status
-   - Prevention Tips
-   - Frequently Asked Questions (FAQ - 4 questions)
+**DYNAMIC EDITORIAL & SEO GUIDELINES (ANTI-TEMPLATE FOOTPRINT):**
+1. **No H1 Header:** The website renders the H1 automatically. Start directly with an empathetic, human introduction that addresses whether funds are safe.
+2. **Authentic Human Voice:** Write like an experienced IT systems engineer who has personally diagnosed this issue. Use experiential observations ("In our lab testing...", "A common trap users fall into is...", "What the automated phone menu won't tell you is...").
+3. **Dynamic Depth (No Formulaic Word Counts):**
+   - For simple UI/app glitches: 1,000–1,300 words. Sharp, surgical, zero fluff.
+   - For high-stakes fraud holds, wire delays, or account locks: 1,800–2,500+ words with deep regulatory context (Reg E, NACHA, Fedwire cutoffs) and exact phone tree shortcuts.
+4. **Varied Layout (DO NOT rigidly force 6 steps):**
+   - Choose the natural number of solutions that actually solves this problem (could be 3, 4, 5, or 7).
+   - Use ### H3 headers for each solution. Bold all interactive UI paths (**Settings** > **Security**).
+   - Where relevant, include telephone scripts or IVR shortcuts (e.g. how to reach a human fraud analyst).
+5. **AEO Optimization:** Provide a direct, bolded summary answer under 40 words right after the main H2 problem question to capture Google Featured Snippets.
+6. **Data & Alerts:** Include a concise diagnostic table early on, and use markdown blockquotes (> ⚠️, > 💡, > 🔴) only where genuinely critical.
+7. **Natural FAQ:** Provide 3 to 6 practical, non-obvious questions that real distressed users ask, answered directly and concisely.
 
-Optimize heavily for the search query: "${bank.name} ${error.title} fix" and "${bank.name} ${error.error_code || 'error'}". Output only the raw Markdown content.`;
+Output only the raw Markdown content.`;
 
           // Try OpenAI first, then Gemini
           if (openAI) {
