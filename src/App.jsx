@@ -25,7 +25,10 @@ export default function App() {
         <Route path="/" element={<PublicLayout />}>
           <Route index element={<Home />} />
           <Route path="article/:slug" element={<PublicArticle />} />
+          <Route path="guides/:slug" element={<PublicArticle />} />
           <Route path="banks/:slug" element={<CategoryArchive />} />
+          <Route path="category/:slug" element={<CategoryArchive />} />
+          <Route path="issues/:slug" element={<CategoryArchive />} />
         </Route>
 
         {/* Protected Admin Dashboard */}
