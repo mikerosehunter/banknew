@@ -289,7 +289,7 @@ export default function PublicArticle() {
         <nav className="breadcrumbs" aria-label="Breadcrumb" style={{ fontSize: '13px', color: '#64748b', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <Link to="/" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 500 }}>Home</Link>
           <ChevronRight size={14} className="text-slate-400" />
-          <Link to={`/category/${article.category}`} style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 500 }}>
+          <Link to={`/issues/${article.category}`} style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 500 }}>
             {(article.category || 'Fix Guides').replace(/-/g, ' ')}
           </Link>
           <ChevronRight size={14} className="text-slate-400" />
@@ -624,7 +624,7 @@ export default function PublicArticle() {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {categories.map(cat => (
                     <Link 
-                      to={`/category/${cat.slug}`} 
+                      to={`/issues/${cat.slug}`} 
                       key={cat.slug}
                       style={{ 
                         display: 'inline-flex', 

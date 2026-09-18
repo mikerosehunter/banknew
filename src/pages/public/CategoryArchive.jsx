@@ -52,7 +52,7 @@ export default function CategoryArchive() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px', maxWidth: '800px', margin: '0 auto' }}>
             {articles.map(a => (
-              <Link key={a.id} to={`/article/${a.slug}`} className="pub-article-card" style={{ display: 'flex', gap: '24px', padding: '24px', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', textDecoration: 'none', color: 'inherit', transition: 'box-shadow 0.2s' }}>
+              <Link key={a.id} to={`/guides/${a.slug}`} className="pub-article-card" style={{ display: 'flex', gap: '24px', padding: '24px', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', textDecoration: 'none', color: 'inherit', transition: 'box-shadow 0.2s' }}>
                 <div style={{ flex: 1 }}>
                   <h3 className="pub-article-title" style={{ fontSize: '20px', marginBottom: '8px', color: '#0f172a' }}>{a.title}</h3>
                   <p className="pub-article-excerpt" style={{ color: '#475569', marginBottom: '16px', lineHeight: 1.6 }}>{a.excerpt || a.meta_description}</p>

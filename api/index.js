@@ -467,7 +467,7 @@ app.get(['/sitemap.xml', '/api/sitemap.xml'], async (req, res) => {
     xml += `  <url>\n    <loc>${baseUrl}/banks</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.9</priority>\n  </url>\n`;
 
     // 2. Categories & Banks
-    for (const t of topics) { xml += `  <url>\n    <loc>${baseUrl}/category/${t.slug}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`; }
+    for (const t of topics) { xml += `  <url>\n    <loc>${baseUrl}/issues/${t.slug}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`; }
     for (const b of banks) { xml += `  <url>\n    <loc>${baseUrl}/banks/${b.slug}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`; }
 
     // 3. Articles

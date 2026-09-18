@@ -176,7 +176,7 @@ export default function Home() {
               topicCategories.map(cat => (
                 <Link
                   key={cat.slug}
-                  to={`/banks/${cat.slug}`}
+                  to={`/issues/${cat.slug}`}
                   style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '22px', textDecoration: 'none', color: 'inherit', transition: 'all 0.2s', position: 'relative', overflow: 'hidden' }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(37,99,235,0.12)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}
@@ -223,7 +223,7 @@ export default function Home() {
               <div>
                 {/* Featured */}
                 {featuredArticle && (
-                  <Link to={`/article/${featuredArticle.slug}`} style={{ display: 'block', textDecoration: 'none', marginBottom: '32px', background: 'linear-gradient(135deg, #eff6ff, #f0fdf4)', border: '1px solid #bfdbfe', borderRadius: '16px', padding: '28px', transition: 'all 0.2s' }}
+                  <Link to={`/guides/${featuredArticle.slug}`} style={{ display: 'block', textDecoration: 'none', marginBottom: '32px', background: 'linear-gradient(135deg, #eff6ff, #f0fdf4)', border: '1px solid #bfdbfe', borderRadius: '16px', padding: '28px', transition: 'all 0.2s' }}
                     onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(37,99,235,0.15)'; }}
                     onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}>
                     <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#2563eb', background: '#dbeafe', padding: '4px 12px', borderRadius: '20px' }}>Featured</span>
@@ -239,7 +239,7 @@ export default function Home() {
 
                 {/* Recent Articles */}
                 {recentArticles.map(a => (
-                  <Link key={a.id} to={`/article/${a.slug}`} className="pub-article-card">
+                  <Link key={a.id} to={`/guides/${a.slug}`} className="pub-article-card">
                     <div className="pub-article-img">
                       {a.category?.includes('login') ? '🔐' : a.category?.includes('app') ? '📱' : a.category?.includes('card') ? '💳' : a.category?.includes('transfer') ? '🔄' : '🏦'}
                     </div>
