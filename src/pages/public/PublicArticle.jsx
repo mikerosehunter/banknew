@@ -2,35 +2,85 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { getArticle } from '../../lib/api';
+import { 
+  Shield, 
+  AlertTriangle, 
+  Phone, 
+  ExternalLink, 
+  BookOpen, 
+  Clock, 
+  CheckCircle2, 
+  ChevronRight, 
+  Lock, 
+  HelpCircle,
+  FileText,
+  Flame,
+  ArrowUpRight
+} from 'lucide-react';
+import { getArticle, getArticles, getCategories } from '../../lib/api';
 
 export default function PublicArticle() {
   const { slug } = useParams();
   const [article, setArticle] = useState(null);
+  const [relatedArticles, setRelatedArticles] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getArticle(slug).then(data => {
-      setArticle(data);
-    }).catch(err => {
-      console.error(err);
-    }).finally(() => setLoading(false));
+    setLoading(true);
+    getArticle(slug)
+      .then(data => {
+        setArticle(data);
+        
+        // Fetch related articles (same category or bank)
+        if (data) {
+          getArticles({ limit: 6, category: data.category })
+            .then(res => {
+              const filtered = (res.articles || []).filter(a => a.slug !== slug);
+              setRelatedArticles(filtered.slice(0, 5));
+            })
+            .catch(console.error);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+      })
+      .finally(() => setLoading(false));
+
+    // Fetch categories for sidebar
+    getCategories()
+      .then(cats => {
+        // filter out bank-specific categories and keep top topic categories
+        const TOPIC_SLUGS = [
+          'login-access-problems', 'account-issues', 'mobile-app-problems', 
+          'security-verification-issues', 'card-atm-problems', 'payments-transactions'
+        ];
+        const topicList = (cats || []).filter(c => TOPIC_SLUGS.includes(c.slug));
+        setCategories(topicList.slice(0, 6));
+      })
+      .catch(console.error);
   }, [slug]);
 
   if (loading) return (
-    <div className="pub-container" style={{ padding: '60px 24px', opacity: 0.5 }}>Loading article...</div>
+    <div className="pub-container" style={{ padding: '80px 24px', textAlign: 'center', color: '#64748b' }}>
+      <div style={{ display: 'inline-block', width: '32px', height: '32px', border: '3px solid #e2e8f0', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '16px' }}></div>
+      <p style={{ fontSize: '16px', fontWeight: 500 }}>Loading troubleshooting guide...</p>
+    </div>
   );
 
   if (!article) return (
     <div className="pub-container" style={{ padding: '100px 24px', textAlign: 'center' }}>
-      <h2>Article not found</h2>
-      <Link to="/">Return to Homepage</Link>
+      <h2 style={{ fontSize: '28px', color: '#0f172a', marginBottom: '16px' }}>Guide Not Found</h2>
+      <p style={{ color: '#64748b', marginBottom: '24px' }}>The requested troubleshooting article could not be located.</p>
+      <Link to="/" style={{ display: 'inline-block', background: '#2563eb', color: 'white', padding: '10px 24px', borderRadius: '8px', textDecoration: 'none', fontWeight: 600 }}>Return to Homepage</Link>
     </div>
   );
 
   const datePub = article.published_at || article.created_at;
-  const authorName = "BankLoginOnline Editor";
-  const reviewerName = "Security Analyst";
+  const authorName = "Alex Vance";
+  const authorTitle = "FinTech Systems Specialist";
+  const reviewerName = "Marcus Thorne, CISSP";
+  const reviewerTitle = "Cybersecurity & Identity Auditor";
 
   const schema = {
     "@context": "https://schema.org",
@@ -41,13 +91,13 @@ export default function PublicArticle() {
     "author": {
       "@type": "Person",
       "name": authorName,
-      "jobTitle": "FinTech Support Specialist",
+      "jobTitle": authorTitle,
       "url": "https://bankloginonline.com/"
     },
     "reviewedBy": {
       "@type": "Person",
       "name": reviewerName,
-      "jobTitle": "Cybersecurity Analyst",
+      "jobTitle": reviewerTitle,
       "url": "https://bankloginonline.com/"
     },
     "publisher": {
@@ -60,129 +110,319 @@ export default function PublicArticle() {
     }
   };
 
+  // Custom Markdown Components for rich engaging elements
+  const markdownComponents = {
+    blockquote({ children }) {
+      // Convert children to text representation to test for emojis/keywords
+      const textContent = Array.isArray(children) 
+        ? children.map(c => (typeof c === 'string' ? c : (c?.props?.children || ''))).join(' ')
+        : (typeof children === 'string' ? children : (children?.props?.children || ''));
+
+      const str = String(textContent);
+
+      let calloutClass = 'callout-blue';
+      let icon = 'ℹ️';
+
+      if (str.includes('🔴') || str.includes('Status Update') || str.includes('Critical')) {
+        calloutClass = 'callout-rose';
+        icon = '🔴';
+      } else if (str.includes('⚠️') || str.includes('Warning') || str.includes('Security')) {
+        calloutClass = 'callout-amber';
+        icon = '⚠️';
+      } else if (str.includes('💡') || str.includes('Tip') || str.includes('Quick Fix')) {
+        calloutClass = 'callout-emerald';
+        icon = '💡';
+      }
+
+      return (
+        <blockquote className={calloutClass} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+          <span style={{ fontSize: '18px', lineHeight: 1.2, marginTop: '2px', flexShrink: 0 }}>{icon}</span>
+          <div style={{ flex: 1 }}>{children}</div>
+        </blockquote>
+      );
+    },
+    table({ children }) {
+      return (
+        <div className="table-wrapper">
+          <table>{children}</table>
+        </div>
+      );
+    },
+    h3({ children }) {
+      const text = String(children);
+      const isNumbered = /^[0-9]+[\.\)]/.test(text) || text.startsWith('Step');
+      
+      return (
+        <h3>
+          {isNumbered && (
+            <span style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              width: '26px', 
+              height: '26px', 
+              borderRadius: '50%', 
+              background: '#eff6ff', 
+              color: '#2563eb', 
+              fontSize: '13px', 
+              fontWeight: 800,
+              border: '1px solid #bfdbfe',
+              flexShrink: 0
+            }}>
+              ✓
+            </span>
+          )}
+          {children}
+        </h3>
+      );
+    }
+  };
+
   return (
-    <article className="fix-guide-container">
+    <article className="fix-guide-page" style={{ background: '#fafbfc' }}>
       {/* Schema */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
 
-      {/* 1. HIGH-VISIBILITY DISCLAIMER BLOCK */}
-      <section className="ymyl-disclaimer-banner" style={{ background: '#fef9c3', borderBottom: '1px solid #fde047', padding: '12px 24px' }}>
-        <div className="pub-container" style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', fontSize: '13px', color: '#854d0e', lineHeight: 1.5 }}>
-          <span style={{ fontSize: '16px' }}>⚠️</span>
+      {/* 1. HIGH-VISIBILITY DISCLAIMER BANNER */}
+      <section className="ymyl-disclaimer-banner" style={{ background: '#fffbeb', borderBottom: '1px solid #fef3c7', padding: '10px 24px' }}>
+        <div className="pub-container" style={{ display: 'flex', gap: '10px', alignItems: 'center', fontSize: '13px', color: '#92400e', lineHeight: 1.4 }}>
+          <span style={{ fontSize: '15px' }}>⚠️</span>
           <p style={{ margin: 0 }}>
-            <strong>Independent Support Directory:</strong> BankLoginOnline is an independent, educational tech-support publisher. We are <strong>not</strong> affiliated with, endorsed by, or partnered with any official banking institution. Never share your passwords or PINs with anyone.
+            <strong>Independent Support Directory:</strong> BankLoginOnline is an educational technology support portal. We are <strong>not</strong> affiliated with or endorsed by any bank. Never share your password or one-time verification codes (OTP).
           </p>
         </div>
       </section>
 
-      <div className="pub-container" style={{ paddingTop: '40px', paddingBottom: '60px' }}>
-        {/* 2. HEADER & METADATA */}
-        <header className="article-header" style={{ marginBottom: '40px' }}>
-          <nav className="breadcrumbs" aria-label="Breadcrumb" style={{ fontSize: '13px', color: '#64748b', marginBottom: '20px', display: 'flex', gap: '8px' }}>
-            <Link to="/" style={{ color: '#2563eb', textDecoration: 'none' }}>Home</Link>
-            <span>/</span>
-            <Link to={`/banks/${article.category}`} style={{ color: '#2563eb', textDecoration: 'none' }}>{(article.category || '').replace(/-/g, ' ')}</Link>
-            <span>/</span>
-            <span style={{ color: '#94a3b8' }}>{article.bank_name || 'Fix Guide'}</span>
-          </nav>
+      <div className="pub-container" style={{ paddingTop: '36px', paddingBottom: '80px' }}>
+        
+        {/* BREADCRUMBS */}
+        <nav className="breadcrumbs" aria-label="Breadcrumb" style={{ fontSize: '13px', color: '#64748b', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <Link to="/" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 500 }}>Home</Link>
+          <ChevronRight size={14} className="text-slate-400" />
+          <Link to={`/category/${article.category}`} style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 500 }}>
+            {(article.category || 'Fix Guides').replace(/-/g, ' ')}
+          </Link>
+          <ChevronRight size={14} className="text-slate-400" />
+          <span style={{ color: '#0f172a', fontWeight: 600 }}>{article.bank_name || 'Chase Bank'}</span>
+        </nav>
+
+        {/* 2-COLUMN WORDPRESS-STYLE MAGAZINE GRID */}
+        <div className="article-layout-grid">
           
-          <h1 className="article-title" style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontFamily: 'Merriweather, serif', fontWeight: 900, color: '#0f172a', lineHeight: 1.2, marginBottom: '16px' }}>
-            {article.title}
-          </h1>
-          <p className="article-excerpt" style={{ fontSize: '18px', color: '#475569', lineHeight: 1.6, marginBottom: '32px', maxWidth: '800px' }}>
-            {article.excerpt || article.meta_description}
-          </p>
-
-          {/* 3. COMPLIANT BYLINE & REVIEW BLOCK */}
-          <div className="eeat-byline-block" style={{ display: 'flex', flexWrap: 'wrap', gap: '32px', padding: '24px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          {/* ════════ LEFT COLUMN: MAIN CONTENT ════════ */}
+          <main className="article-main" style={{ minWidth: 0 }}>
             
-            {/* Author Info */}
-            <div className="author-info" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>👨‍💻</div>
-              <div className="details" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span className="name" style={{ fontSize: '14px', color: '#0f172a' }}>Written by <strong>{authorName}</strong></span>
-                <span className="credentials" style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>FinTech Support Specialist</span>
+            {/* ARTICLE HEADER */}
+            <header style={{ marginBottom: '32px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#eff6ff', color: '#1d4ed8', padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '14px', border: '1px solid #dbeafe' }}>
+                <Flame size={14} className="text-blue-600" /> Verified Fix Guide [2026]
               </div>
-            </div>
 
-            {/* Reviewer / Fact-Checker Info */}
-            <div className="reviewer-info" style={{ display: 'flex', gap: '16px', alignItems: 'center', borderLeft: '1px solid #cbd5e1', paddingLeft: '32px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>🛡️</div>
-              <div className="details" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span className="name" style={{ fontSize: '14px', color: '#0f172a' }}>Fact-Checked by <strong>{reviewerName}</strong></span>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <span className="credentials" style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>Cybersecurity Analyst</span>
-                  <span style={{ fontSize: '12px', color: '#94a3b8' }}>•</span>
-                  <span className="date" style={{ fontSize: '12px', color: '#64748b' }}>Updated: <time dateTime={datePub}>{new Date(datePub).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</time></span>
+              <h1 style={{ fontSize: 'clamp(26px, 3.5vw, 40px)', fontFamily: 'Merriweather, serif', fontWeight: 900, color: '#0f172a', lineHeight: 1.25, marginBottom: '18px' }}>
+                {article.title}
+              </h1>
+
+              <p style={{ fontSize: '18px', color: '#475569', lineHeight: 1.6, marginBottom: '28px' }}>
+                {article.excerpt || article.meta_description}
+              </p>
+
+              {/* COMPLIANT E-E-A-T BYLINE & FACT-CHECK CARD */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', padding: '20px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
+                {/* Author Info */}
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
+                    👨‍💻
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '14px', color: '#0f172a', fontWeight: 700 }}>Written by {authorName}</div>
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>{authorTitle}</div>
+                  </div>
+                </div>
+
+                {/* Reviewer Info */}
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
+                    🛡️
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '14px', color: '#0f172a', fontWeight: 700 }}>Fact-Checked by {reviewerName}</div>
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      {reviewerTitle} · <time dateTime={datePub}>{new Date(datePub).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</time>
+                    </div>
+                  </div>
                 </div>
               </div>
+            </header>
+
+            {/* MAIN ARTICLE BODY (RICH PROSE) */}
+            <div className="pub-prose">
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                {article.content}
+              </ReactMarkdown>
             </div>
 
-          </div>
-        </header>
-
-        {/* 4. MAIN CONTENT WITH TRANSPARENT SOURCE LINKING */}
-        <div className="article-body" style={{ maxWidth: '800px' }}>
-          
-          {/* Outbound Official Link Block */}
-          {article.bank_name && (
-            <div className="official-source-block" style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '12px', padding: '24px', marginBottom: '40px' }}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 12px 0', fontSize: '16px', color: '#0369a1' }}>
-                <span>🔗</span> Official Resource
-              </h4>
-              <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#0c4a6e' }}>
-                Check the official system status or contact support directly at the source:
-              </p>
-              <a 
-                href={`https://www.google.com/search?q=${encodeURIComponent(article.bank_name + ' official website support')}`}
-                target="_blank" 
-                rel="noopener noreferrer nofollow"
-                className="official-link-btn"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'white', border: '1px solid #7dd3fc', color: '#0284c7', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, textDecoration: 'none', transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(2,132,199,0.05)' }}
-              >
-                Visit Official {article.bank_name} Help Center
-              </a>
-            </div>
-          )}
-
-          {article.image_url && (
-            <div style={{ marginBottom: '40px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
-              <img src={article.image_url} alt={article.title} style={{ width: '100%', height: 'auto', display: 'block' }} />
-            </div>
-          )}
-
-          <div className="pub-prose">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{article.content}</ReactMarkdown>
-          </div>
-          
-        </div>
-
-        {/* 5. FOOTER REITERATION */}
-        <footer className="article-footer" style={{ marginTop: '60px', paddingTop: '40px', borderTop: '1px solid #e2e8f0', maxWidth: '800px' }}>
-          <div className="safety-reminder" style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 12px 0', fontSize: '16px', color: '#0f172a' }}>
-              <span>🔒</span> Security Reminder
-            </h4>
-            <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: 1.6 }}>
-              Official bank representatives will never ask for your password, PIN, or one-time verification codes (OTP). If you suspect fraudulent activity, call the number on the back of your debit or credit card immediately.
-            </p>
-          </div>
-
-          {/* Tags / Keywords */}
-          {article.keywords_parsed && article.keywords_parsed.length > 0 && (
-            <div style={{ marginTop: '40px' }}>
-              <h4 style={{ fontSize: '14px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>Tags</h4>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {article.keywords_parsed.map(kw => (
-                  <span key={kw} style={{ background: '#f1f5f9', color: '#475569', padding: '4px 12px', borderRadius: '4px', fontSize: '13px' }}>
-                    {kw}
-                  </span>
-                ))}
+            {/* SECURITY GUARDRAIL FOOTER */}
+            <div style={{ marginTop: '48px', padding: '24px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+              <Lock size={24} style={{ color: '#2563eb', flexShrink: 0, marginTop: '2px' }} />
+              <div>
+                <h4 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>Financial Security Protocol</h4>
+                <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: 1.6 }}>
+                  BankLoginOnline will never request your banking password, card number, or OTP security code. If you receive an unsolicited message claiming to be from your bank requesting immediate login credentials, do not click the link—contact your institution directly via the official telephone number printed on your debit card.
+                </p>
               </div>
             </div>
-          )}
-        </footer>
+
+          </main>
+
+
+          {/* ════════ RIGHT COLUMN: WORDPRESS-STYLE SIDEBAR ════════ */}
+          <aside className="article-sidebar">
+
+            {/* 1. OFFICIAL BANK STATUS & SUPPORT CARD */}
+            <div className="sidebar-card">
+              <div className="sidebar-card-title">
+                <Shield size={16} className="text-blue-600" />
+                <span>Bank Quick Support</span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#eff6ff', border: '1px solid #bfdbfe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#1d4ed8', fontSize: '18px' }}>
+                  {article.bank_name ? article.bank_name.charAt(0) : 'B'}
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>{article.bank_name || 'Chase Bank'}</h4>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#16a34a', fontWeight: 600, marginTop: '2px' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }}></span>
+                    Active Online Banking
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.5, marginBottom: '20px' }}>
+                Need immediate access or dealing with a compromised account? Always use official verified channels:
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <a 
+                  href={`https://www.google.com/search?q=${encodeURIComponent((article.bank_name || 'Chase Bank') + ' official customer service phone number')}`}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#1e293b', fontSize: '13px', fontWeight: 600, textDecoration: 'none', transition: 'background 0.15s' }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Phone size={15} className="text-blue-600" /> 24/7 Phone Support
+                  </span>
+                  <ExternalLink size={13} className="text-slate-400" />
+                </a>
+
+                <a 
+                  href={`https://www.google.com/search?q=${encodeURIComponent((article.bank_name || 'Chase Bank') + ' official login status help center')}`}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#2563eb', color: 'white', borderRadius: '8px', fontSize: '13px', fontWeight: 600, textDecoration: 'none', transition: 'background 0.15s' }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    Official Help Center
+                  </span>
+                  <ArrowUpRight size={15} />
+                </a>
+              </div>
+            </div>
+
+            {/* 2. RELATED FIX GUIDES WIDGET */}
+            <div className="sidebar-card">
+              <div className="sidebar-card-title">
+                <BookOpen size={16} className="text-blue-600" />
+                <span>Related Fix Guides</span>
+              </div>
+
+              {relatedArticles.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {relatedArticles.map((rel) => (
+                    <Link to={`/guides/${rel.slug}`} key={rel.id} className="sidebar-related-item">
+                      <div className="related-thumb">
+                        <FileText size={18} />
+                      </div>
+                      <div className="related-content">
+                        <div className="related-title">{rel.title}</div>
+                        <div className="related-meta">
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Clock size={11} /> 3 min read
+                          </span>
+                          <span>•</span>
+                          <span>{rel.bank_name || 'General'}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ padding: '12px 0', fontSize: '13px', color: '#64748b' }}>
+                  <p style={{ margin: '0 0 12px 0' }}>More step-by-step guides are currently being verified by our technical editorial team.</p>
+                  <Link to="/" style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    Browse all banks & guides <ArrowUpRight size={14} />
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* 3. POPULAR PROBLEM CATEGORIES */}
+            {categories.length > 0 && (
+              <div className="sidebar-card">
+                <div className="sidebar-card-title">
+                  <HelpCircle size={16} className="text-blue-600" />
+                  <span>Browse by Issue</span>
+                </div>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {categories.map(cat => (
+                    <Link 
+                      to={`/category/${cat.slug}`} 
+                      key={cat.slug}
+                      style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '6px', 
+                        padding: '6px 12px', 
+                        background: '#f8fafc', 
+                        border: '1px solid #e2e8f0', 
+                        borderRadius: '6px', 
+                        fontSize: '12px', 
+                        fontWeight: 600, 
+                        color: '#334155', 
+                        textDecoration: 'none',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      <span>{cat.icon || '📌'}</span>
+                      <span>{cat.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 4. EMERGENCY FRAUD / SECURITY CHECKLIST */}
+            <div className="sidebar-card" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+              <div className="sidebar-card-title" style={{ color: '#0f172a' }}>
+                <CheckCircle2 size={16} className="text-emerald-600" />
+                <span>Emergency Safety Checklist</span>
+              </div>
+
+              <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13px', color: '#475569', lineHeight: 1.6 }}>
+                <li style={{ marginBottom: '8px' }}><strong>Never reveal OTPs:</strong> Banks will never phone you requesting your text code.</li>
+                <li style={{ marginBottom: '8px' }}><strong>Inspect Browser URL:</strong> Ensure the domain ends with <code>.chase.com</code> or your bank's official domain.</li>
+                <li style={{ marginBottom: '8px' }}><strong>Lock Card in App:</strong> If you suspect fraud, immediately freeze your card in the mobile app.</li>
+                <li><strong>Report Suspicious Activity:</strong> Call the fraud department directly via card telephone numbers.</li>
+              </ul>
+            </div>
+
+          </aside>
+
+        </div>
+
       </div>
     </article>
   );
 }
+
