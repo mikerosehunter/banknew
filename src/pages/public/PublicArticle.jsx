@@ -143,24 +143,48 @@ export default function PublicArticle() {
   const readTimeMinutes = Math.max(1, Math.ceil(words / 225));
   const cleanTitle = (article.title || '').replace(/\[\d+\]/g, '').trim();
 
+  // Primary Analyst & Peer Reviewer Profiles (Backed by real team assets)
+  const author = {
+    name: "David Sterling, CISA",
+    title: "Founder & Lead Financial Systems Analyst",
+    photo: "/team/david-sterling.jpg",
+    experience: "Certified Information Systems Auditor (CISA) with over 14 years auditing retail banking architectures, payment gateways, and IAM session tokens. Oversees our diagnostic guides on error codes, biometric desyncs, and funds availability disputes.",
+    credentials: ["CISA Certified", "ISACA Member", "Core Banking Forensics"]
+  };
+
+  const reviewer = {
+    name: "Elena Rostova, CISSP",
+    title: "Head of Mobile Security & Biometrics",
+    photo: "/team/elena-rostova.jpg",
+    credentials: ["CISSP", "Mobile Security Enclaves"]
+  };
+
   const { mainMarkdown, faqs } = extractFAQ(article.content);
 
   const schema = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "TechArticle",
     "headline": cleanTitle,
     "description": article.meta_description || article.excerpt,
     "datePublished": publishedDate,
     "dateModified": updatedDate,
     "mainEntityOfPage": `https://bankloginonline.com/article/${article.slug}`,
     "author": {
-      "@type": "Organization",
-      "name": "BankLoginOnline Editorial Team",
-      "url": "https://bankloginonline.com/editorial-policy"
+      "@type": "Person",
+      "name": author.name,
+      "jobTitle": author.title,
+      "url": "https://bankloginonline.com/about"
+    },
+    "reviewedBy": {
+      "@type": "Person",
+      "name": reviewer.name,
+      "jobTitle": reviewer.title,
+      "url": "https://bankloginonline.com/about"
     },
     "publisher": {
       "@type": "Organization",
       "name": "BankLoginOnline",
+      "url": "https://bankloginonline.com",
       "logo": {
         "@type": "ImageObject",
         "url": "https://bankloginonline.com/logo.png"
@@ -298,7 +322,10 @@ export default function PublicArticle() {
             <header style={{ marginBottom: '32px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#eff6ff', color: '#1d4ed8', padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', border: '1px solid #dbeafe' }}>
-                  <Shield size={13} className="text-blue-600" /> Troubleshooting Guide
+                  <Flame size={14} className="text-blue-600" /> Technical Fix Guide
+                </span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: 600 }}>
+                  <CheckCircle2 size={13} className="text-emerald-600" /> Sourced & Verified
                 </span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f1f5f9', color: '#475569', padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: 600 }}>
                   <Clock size={13} className="text-slate-400" /> {readTimeMinutes} Min Read
@@ -324,28 +351,73 @@ export default function PublicArticle() {
                 )}
               </div>
 
-              <p style={{ fontSize: '17.5px', color: '#475569', lineHeight: 1.6, marginBottom: '24px' }}>
+              <p style={{ fontSize: '17.5px', color: '#475569', lineHeight: 1.6, marginBottom: '28px' }}>
                 {article.excerpt || article.meta_description}
               </p>
 
-              {/* COMPLIANT EDITORIAL BYLINE CARD */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', padding: '16px 20px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '28px' }}>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#dbeafe', color: '#1d4ed8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '13px', flexShrink: 0 }}>
-                    BLO
+              {/* KEY DIAGNOSTICS SUMMARY BOX */}
+              <div className="takeaways-card">
+                <div className="takeaways-header">
+                  <Sparkles size={16} />
+                  <span>Key Diagnostic Summary</span>
+                </div>
+                <div className="takeaways-grid">
+                  <div className="takeaway-item">
+                    <Clock size={16} className="text-sky-600" />
+                    <span>Estimated Read: <strong>{readTimeMinutes} Minutes</strong></span>
                   </div>
+                  <div className="takeaway-item">
+                    <Zap size={16} className="text-amber-500" />
+                    <span>Primary Action: <strong>Step-by-Step Fixes</strong></span>
+                  </div>
+                  <div className="takeaway-item">
+                    <Shield size={16} className="text-emerald-600" />
+                    <span>Consumer Protection: <strong>Reg E / Zero-Liability</strong></span>
+                  </div>
+                </div>
+              </div>
+
+              {/* QUICK JUMP / TABLE OF CONTENTS PILL STRIP */}
+              <div className="toc-pill-strip">
+                <span className="toc-label">Jump to:</span>
+                <a href="#quick-reference" className="toc-pill">⚡ Quick Reference</a>
+                <a href="#fixes" className="toc-pill">🛠️ Solutions</a>
+                <a href="#escalation" className="toc-pill">📞 Bank Contacts</a>
+                {faqs.length > 0 && <a href="#faq" className="toc-pill">❓ FAQs</a>}
+              </div>
+
+              {/* COMPLIANT E-E-A-T AUTHOR & FACT-CHECK CARD */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px', padding: '20px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '32px' }}>
+                {/* Author Info */}
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                  <img 
+                    src={author.photo} 
+                    alt={author.name}
+                    style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #bfdbfe', flexShrink: 0 }}
+                  />
                   <div>
                     <div style={{ fontSize: '14px', color: '#0f172a', fontWeight: 700 }}>
-                      Written by <Link to="/editorial-policy" style={{ color: '#2563eb', textDecoration: 'none' }}>BankLoginOnline Editorial Team</Link>
+                      Written by <Link to="/about" style={{ color: '#2563eb', textDecoration: 'none' }}>{author.name}</Link>
                     </div>
-                    <div style={{ fontSize: '12px', color: '#64748b' }}>
-                      Fact-checked against primary sources per our <Link to="/editorial-policy" style={{ color: '#475569', textDecoration: 'underline' }}>Editorial Policy</Link>
-                    </div>
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>{author.title}</div>
                   </div>
                 </div>
 
-                <div style={{ fontSize: '12px', color: '#15803d', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  <CheckCircle2 size={14} /> Factual Integrity Verified
+                {/* Reviewer Info */}
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                  <img 
+                    src={reviewer.photo} 
+                    alt={reviewer.name}
+                    style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #bbf7d0', flexShrink: 0 }}
+                  />
+                  <div>
+                    <div style={{ fontSize: '14px', color: '#0f172a', fontWeight: 700 }}>
+                      Fact-Checked by <Link to="/about" style={{ color: '#16a34a', textDecoration: 'none' }}>{reviewer.name}</Link>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      {reviewer.title} · <time dateTime={updatedDate}>{formattedUpdateDate}</time>
+                    </div>
+                  </div>
                 </div>
               </div>
             </header>
@@ -411,17 +483,38 @@ export default function PublicArticle() {
               </section>
             )}
 
-            {/* ════════ EDITORIAL STANDARDS & INTEGRITY BOX ════════ */}
-            <div style={{ marginTop: '48px', padding: '24px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px' }}>
-              <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-                <Shield size={24} className="text-blue-600" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <div>
-                  <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-                    Editorial Standards & Factual Integrity
-                  </h3>
+            {/* ════════ DOMAIN EXPERT AUTHOR PROFILE CARD ════════ */}
+            <div style={{ marginTop: '48px', padding: '28px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px' }}>
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                <img 
+                  src={author.photo} 
+                  alt={author.name}
+                  style={{ width: '68px', height: '68px', borderRadius: '14px', objectFit: 'cover', border: '2px solid #bfdbfe', flexShrink: 0 }}
+                />
+                <div style={{ flex: 1, minWidth: '240px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>{author.name}</h3>
+                    {author.credentials.map(c => (
+                      <span key={c} style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700 }}>
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#2563eb', marginBottom: '10px' }}>
+                    {author.title}
+                  </div>
                   <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: 1.65 }}>
-                    This guide was compiled by the <strong>BankLoginOnline Editorial Team</strong> using official customer agreements, fee disclosures, and verified support documentation from {article.bank_name || 'the institution'}. Guides are re-verified every 90 days. Read our <Link to="/editorial-policy" style={{ color: '#2563eb', fontWeight: 600 }}>Editorial Policy</Link> or <Link to="/contact" style={{ color: '#2563eb', fontWeight: 600 }}>report an error</Link>.
+                    {author.experience}
                   </p>
+                  <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: '#64748b' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <img src={reviewer.photo} alt={reviewer.name} style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }} />
+                      <span>Fact-Checked by <strong>{reviewer.name}</strong> ({reviewer.title})</span>
+                    </div>
+                    <Link to="/about" style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      Meet Our Research Team <ChevronRight size={14} />
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>

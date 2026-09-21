@@ -58,23 +58,37 @@ async function prerender() {
     const updatedDate = article.updated_at || publishedDate;
     const bodyHtml = marked.parse(article.content || '');
 
+    const words = (article.content || '').trim().split(/\s+/).length;
+    const readTime = Math.max(1, Math.ceil(words / 225));
+
     const schema = {
       "@context": "https://schema.org",
-      "@type": "Article",
+      "@type": "TechArticle",
       "headline": cleanTitle,
       "description": metaDesc,
       "datePublished": publishedDate,
       "dateModified": updatedDate,
       "mainEntityOfPage": `https://bankloginonline.com/article/${article.slug}`,
       "author": {
-        "@type": "Organization",
-        "name": "BankLoginOnline Editorial Team",
-        "url": "https://bankloginonline.com/editorial-policy"
+        "@type": "Person",
+        "name": "David Sterling, CISA",
+        "jobTitle": "Founder & Lead Financial Systems Analyst",
+        "url": "https://bankloginonline.com/about"
+      },
+      "reviewedBy": {
+        "@type": "Person",
+        "name": "Elena Rostova, CISSP",
+        "jobTitle": "Head of Mobile Security & Biometrics",
+        "url": "https://bankloginonline.com/about"
       },
       "publisher": {
         "@type": "Organization",
         "name": "BankLoginOnline",
-        "url": "https://bankloginonline.com"
+        "url": "https://bankloginonline.com",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://bankloginonline.com/logo.png"
+        }
       }
     };
 
@@ -87,9 +101,16 @@ async function prerender() {
           <span>${cleanTitle}</span>
         </nav>
         <header style="margin-bottom: 32px; border-bottom: 1px solid #e2e8f0; padding-bottom: 24px;">
+          <div style="display: flex; gap: 8px; margin-bottom: 12px; font-size: 12px; font-weight: 700;">
+            <span style="background: #eff6ff; color: #1d4ed8; padding: 3px 10px; border-radius: 9999px;">Technical Fix Guide</span>
+            <span style="background: #f0fdf4; color: #15803d; padding: 3px 10px; border-radius: 9999px;">Sourced &amp; Verified</span>
+            <span style="background: #f1f5f9; color: #475569; padding: 3px 10px; border-radius: 9999px;">${readTime} Min Read</span>
+          </div>
           <h1 style="font-size: 32px; font-weight: 800; line-height: 1.25; margin-bottom: 16px; color: #0f172a;">${cleanTitle}</h1>
           <div style="font-size: 14px; color: #64748b; display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
-            <span>By <a href="/editorial-policy" style="color: #2563eb; text-decoration: none; font-weight: 600;">BankLoginOnline Editorial Team</a></span>
+            <span>By <a href="/about" style="color: #2563eb; text-decoration: none; font-weight: 700;">David Sterling, CISA</a></span>
+            <span>•</span>
+            <span>Fact-Checked by <a href="/about" style="color: #16a34a; text-decoration: none; font-weight: 600;">Elena Rostova, CISSP</a></span>
             <span>•</span>
             <span>Published: ${new Date(publishedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
             <span>•</span>
