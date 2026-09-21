@@ -44,7 +44,8 @@ export default function PublicLayout() {
             <NavLink to="/">Home</NavLink>
             {isHome ? <a href="#all-banks">Banks</a> : <Link to="/#all-banks">Banks</Link>}
             {isHome ? <a href="#latest-guides">Fix Guides</a> : <Link to="/#latest-guides">Fix Guides</Link>}
-            <NavLink to="/banks/bank-outages-support">Live Outages</NavLink>
+            <NavLink to="/about">About</NavLink>
+            <NavLink to="/contact">Contact</NavLink>
           </nav>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -100,9 +101,10 @@ export default function PublicLayout() {
               </ul>
             </div>
             <div>
-              <div className="pub-footer-heading">About</div>
+              <div className="pub-footer-heading">Company</div>
               <ul>
-                <li><Link to="/">How It Works</Link></li>
+                <li><Link to="/about">About Us</Link></li>
+                <li><Link to="/contact">Contact Us</Link></li>
                 <li><Link to="/privacy-policy">Privacy Policy</Link></li>
                 <li><Link to="/disclaimer">Disclaimer</Link></li>
               </ul>

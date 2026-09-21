@@ -15,6 +15,8 @@ import PublicArticle from './pages/public/PublicArticle';
 import CategoryArchive from './pages/public/CategoryArchive';
 import PrivacyPolicy from './pages/public/PrivacyPolicy';
 import Disclaimer from './pages/public/Disclaimer';
+import About from './pages/public/About';
+import Contact from './pages/public/Contact';
 
 export default function App() {
   return (
@@ -28,6 +30,10 @@ export default function App() {
           <Route path="banks/:slug" element={<CategoryArchive />} />
           <Route path="category/:slug" element={<CategoryArchive />} />
           <Route path="issues/:slug" element={<CategoryArchive />} />
+          <Route path="about" element={<About />} />
+          <Route path="about-us" element={<About />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="contact-us" element={<Contact />} />
           <Route path="privacy-policy" element={<PrivacyPolicy />} />
           <Route path="privacy" element={<PrivacyPolicy />} />
           <Route path="disclaimer" element={<Disclaimer />} />
