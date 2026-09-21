@@ -282,7 +282,15 @@ app.get('/api/articles', async (req, res) => {
       .order('published_at', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
       .range(+offset, +offset + +limit - 1);
-    if (category) q = q.eq('category', category);
+    if (category) {
+      if (category === 'bank-of-america') {
+        q = q.eq('bank_name', 'Bank of America');
+      } else if (category === 'jpmorgan-chase-bank' || category === 'chase-bank' || category === 'chase') {
+        q = q.eq('bank_name', 'Chase Bank');
+      } else {
+        q = q.or(`category.eq.${category},bank_name.ilike.%${category.replace(/-/g, ' ')}%`);
+      }
+    }
     if (search) q = q.ilike('title', `%${search}%`);
     if (status) q = q.eq('status', status);
     const { data, count, error } = await q;
