@@ -25,6 +25,45 @@ import {
 } from 'lucide-react';
 import { getArticle, getArticles, getCategories } from '../../lib/api';
 
+// Helper to generate clean URL anchor slugs from heading text
+function slugifyHeading(text) {
+  return String(text || '')
+    .toLowerCase()
+    .replace(/[*_`#]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
+// Helper to extract top-level H2 headings for Table of Contents
+function extractHeadings(content) {
+  if (!content) return [];
+  const lines = content.split('\n');
+  const headings = [];
+  for (const line of lines) {
+    const match = line.match(/^##\s+(.+)$/);
+    if (match) {
+      const rawText = match[1].trim();
+      if (/^Frequently Asked Questions|FAQ/i.test(rawText)) continue;
+      const cleanText = rawText.replace(/[*_`#]/g, '').trim();
+      const id = slugifyHeading(cleanText);
+
+      let label = cleanText;
+      if (cleanText.length > 24) {
+        if (/why/i.test(cleanText)) label = 'Causes & Trigger';
+        else if (/fix|step|solution|resolve|how to/i.test(cleanText)) label = 'Step-by-Step Fixes';
+        else if (/server|status|outage/i.test(cleanText)) label = 'Server Status';
+        else if (/escalat|support|contact|call|phone/i.test(cleanText)) label = 'Official Escalation';
+        else if (/matrix|quick reference/i.test(cleanText)) label = 'Quick Matrix';
+        else label = cleanText.split(/[:—–-]/)[0].trim();
+        if (label.length > 22) label = label.substring(0, 20) + '...';
+      }
+
+      headings.push({ id, text: cleanText, label });
+    }
+  }
+  return headings;
+}
+
 // Helper to extract FAQ from markdown for interactive accordion rendering
 function extractFAQ(content) {
   if (!content) return { mainMarkdown: '', faqs: [] };
@@ -160,6 +199,49 @@ export default function PublicArticle() {
   };
 
   const { mainMarkdown, faqs } = extractFAQ(article.content);
+  const headings = extractHeadings(mainMarkdown);
+
+  const scrollToSection = (e, targetId) => {
+    if (e && e.preventDefault) e.preventDefault();
+    
+    let el = document.getElementById(targetId);
+
+    if (!el) {
+      const allHeadings = document.querySelectorAll('h2[id], section[id]');
+      for (const h of allHeadings) {
+        const hid = h.id.toLowerCase();
+        if (targetId.includes('fix') || targetId.includes('step') || targetId.includes('solution')) {
+          if (hid.includes('fix') || hid.includes('step') || hid.includes('solution') || hid.includes('resolve') || hid.includes('how-to')) {
+            el = h; break;
+          }
+        } else if (targetId.includes('quick') || targetId.includes('reference') || targetId.includes('overview') || targetId.includes('matrix')) {
+          if (hid.includes('quick') || hid.includes('reference') || hid.includes('symptom') || hid.includes('matrix')) {
+            el = h; break;
+          }
+        } else if (targetId.includes('escalat') || targetId.includes('support') || targetId.includes('contact')) {
+          if (hid.includes('escalat') || hid.includes('support') || hid.includes('contact') || hid.includes('call')) {
+            el = h; break;
+          }
+        } else if (targetId.includes('faq')) {
+          if (hid === 'faq' || hid.includes('faq') || hid.includes('question')) {
+            el = h; break;
+          }
+        }
+      }
+    }
+
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.history.pushState(null, '', `#${el.id || targetId}`);
+    }
+  };
+
+  useEffect(() => {
+    if (article && window.location.hash) {
+      const id = window.location.hash.replace('#', '');
+      setTimeout(() => scrollToSection(null, id), 350);
+    }
+  }, [article]);
 
   const schema = {
     "@context": "https://schema.org",
@@ -240,6 +322,19 @@ export default function PublicArticle() {
         <div className="table-wrapper">
           <table>{children}</table>
         </div>
+      );
+    },
+    h2({ children }) {
+      const textContent = Array.isArray(children) 
+        ? children.map(c => (typeof c === 'string' ? c : (c?.props?.children || ''))).join(' ')
+        : (typeof children === 'string' ? children : (children?.props?.children || ''));
+      
+      const id = slugifyHeading(textContent);
+
+      return (
+        <h2 id={id} style={{ scrollMarginTop: '110px' }}>
+          {children}
+        </h2>
       );
     },
     h3({ children }) {
@@ -378,13 +473,30 @@ export default function PublicArticle() {
               </div>
 
               {/* QUICK JUMP / TABLE OF CONTENTS PILL STRIP */}
-              <div className="toc-pill-strip">
-                <span className="toc-label">Jump to:</span>
-                <a href="#quick-reference" className="toc-pill">⚡ Quick Reference</a>
-                <a href="#fixes" className="toc-pill">🛠️ Solutions</a>
-                <a href="#escalation" className="toc-pill">📞 Bank Contacts</a>
-                {faqs.length > 0 && <a href="#faq" className="toc-pill">❓ FAQs</a>}
-              </div>
+              {(headings.length > 0 || faqs.length > 0) && (
+                <div className="toc-pill-strip">
+                  <span className="toc-label">Jump to:</span>
+                  {headings.map((h, i) => (
+                    <a 
+                      key={h.id} 
+                      href={`#${h.id}`} 
+                      onClick={(e) => scrollToSection(e, h.id)} 
+                      className="toc-pill"
+                    >
+                      <span>{i === 0 ? '⚡' : i === 1 ? '🛠️' : '📌'}</span> {h.label}
+                    </a>
+                  ))}
+                  {faqs.length > 0 && (
+                    <a 
+                      href="#faq" 
+                      onClick={(e) => scrollToSection(e, 'faq')} 
+                      className="toc-pill"
+                    >
+                      <span>❓</span> FAQs
+                    </a>
+                  )}
+                </div>
+              )}
 
               {/* COMPLIANT E-E-A-T AUTHOR & FACT-CHECK CARD */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px', padding: '20px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '32px' }}>
@@ -431,7 +543,7 @@ export default function PublicArticle() {
 
             {/* ════════ INTERACTIVE FAQ ACCORDIONS ════════ */}
             {faqs.length > 0 && (
-              <section id="faq" className="faq-container" style={{ borderTop: '2px solid #f1f5f9', paddingTop: '36px', marginTop: '48px' }}>
+              <section id="faq" className="faq-container" style={{ borderTop: '2px solid #f1f5f9', paddingTop: '36px', marginTop: '48px', scrollMarginTop: '110px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                   <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <HelpCircle size={18} />

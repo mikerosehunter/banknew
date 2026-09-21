@@ -8,6 +8,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
+marked.use({
+  renderer: {
+    heading({ text, depth }) {
+      const clean = String(text || '').replace(/[*_`#]/g, '').trim();
+      const id = clean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      return `<h${depth} id="${id}" style="scroll-margin-top: 110px;">${clean}</h${depth}>\n`;
+    }
+  }
+});
+
 // Load environment variables from .env.local if present
 const envPath = path.join(rootDir, '.env.local');
 let supabaseUrl = process.env.SUPABASE_URL;
