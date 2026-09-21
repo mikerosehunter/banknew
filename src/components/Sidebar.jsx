@@ -1,15 +1,13 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileText, Settings, Shield, PlusCircle, FolderTree } from 'lucide-react';
+import { LayoutDashboard, FileText, Settings, Shield, FolderTree, LogOut, Globe } from 'lucide-react';
 
 const NAV_ITEMS = [
   { path: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
   { path: '/admin/articles', icon: FileText, label: 'All Articles' },
   { path: '/admin/categories', icon: FolderTree, label: 'Categories' },
-  { path: '/admin/publish', icon: PlusCircle, label: 'Write Article' },
-  { path: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ onLogout }) {
   return (
     <aside className="w-64 flex-shrink-0 flex flex-col border-r border-white/[0.06]" 
            style={{ background: 'rgba(8,14,26,0.85)', backdropFilter: 'blur(20px)' }}>
@@ -43,6 +41,29 @@ export default function Sidebar() {
           </NavLink>
         ))}
       </nav>
+
+      {/* Footer / Logout */}
+      <div className="p-4 border-t border-white/[0.06] space-y-2">
+        <a 
+          href="/" 
+          target="_blank" 
+          rel="noreferrer"
+          className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-lg hover:bg-white/[0.04] transition-colors"
+        >
+          <Globe size={15} />
+          <span>View Live Site</span>
+        </a>
+
+        {onLogout && (
+          <button 
+            onClick={onLogout}
+            className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-400 hover:text-red-300 rounded-lg hover:bg-red-500/10 transition-colors"
+          >
+            <LogOut size={15} />
+            <span>Lock & Sign Out</span>
+          </button>
+        )}
+      </div>
     </aside>
   );
 }

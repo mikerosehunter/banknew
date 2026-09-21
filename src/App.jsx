@@ -8,9 +8,6 @@ import PublicLayout from './layouts/PublicLayout';
 import Dashboard from './pages/Dashboard';
 import ArticlesAdmin from './pages/Articles';
 import CategoriesAdmin from './pages/Categories';
-import Publish from './pages/Publish';
-
-
 
 // Public Pages
 import Home from './pages/public/Home';
@@ -42,7 +39,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="articles" element={<ArticlesAdmin />} />
           <Route path="categories" element={<CategoriesAdmin />} />
-          <Route path="publish" element={<Publish />} />
+          <Route path="publish" element={<Navigate to="/admin" replace />} />
         </Route>
 
 

@@ -352,93 +352,9 @@ app.get('/api/banks', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// AI Article Generation (admin trigger)
-app.post('/api/generate', async (req, res) => {
-  try {
-    const { count: limit = 5 } = req.body || {};
-    // Get errors that don't have articles yet
-    const { data: errors } = await supabase.from('bw_errors').select('*,bw_banks(name,website,login_url,support_url)').order('affected_count', { ascending: false }).limit(50);
-    const { data: existing } = await supabase.from('bw_articles').select('error_id').not('error_id', 'is', null);
-    const existingIds = new Set((existing || []).map(a => a.error_id));
-    const toProcess = (errors || []).filter(e => !existingIds.has(e.id)).slice(0, limit);
-
-    if (toProcess.length === 0) {
-      return res.json({ success: 0, message: 'No new errors to generate articles for.' });
-    }
-
-    // Send response immediately — generate in background
-    res.json({ success: toProcess.length, message: `Generating ${toProcess.length} articles in the background...` });
-
-    // Background generation
-    (async () => {
-      const genAI = getGemini();
-      const openAI = getOpenAI();
-      for (const error of toProcess) {
-        try {
-          const bank = error.bw_banks;
-          const params = { bankName: bank.name, errorTitle: error.title, errorCode: error.error_code, errorType: error.type, severity: error.severity, affectedCount: error.affected_count, website: bank.website, loginUrl: bank.login_url, supportUrl: bank.support_url };
-          let article = buildArticle(params);
-          const prompt = `You are David Sterling, CISA, a Senior Banking Systems & FinTech Infrastructure Specialist writing an authoritative, human-grade, YMYL-compliant troubleshooting guide for bankloginonline.com.
-
-**Target Bank:** ${bank.name}
-**Error / Issue:** ${error.title}
-**Error Code:** ${error.error_code || 'N/A'}
-**Severity:** ${error.severity}
-**Category:** ${error.type}
-
-**DYNAMIC EDITORIAL & SEO GUIDELINES (ANTI-TEMPLATE FOOTPRINT):**
-1. **No H1 Header:** The website renders the H1 automatically. Start directly with an empathetic, human introduction that addresses whether funds are safe.
-2. **Authentic Human Voice:** Write like an experienced IT systems engineer who has personally diagnosed this issue. Use experiential observations ("In our lab testing...", "A common trap users fall into is...", "What the automated phone menu won't tell you is...").
-3. **Dynamic Depth (No Formulaic Word Counts):**
-   - For simple UI/app glitches: 1,000–1,300 words. Sharp, surgical, zero fluff.
-   - For high-stakes fraud holds, wire delays, or account locks: 1,800–2,500+ words with deep regulatory context (Reg E, NACHA, Fedwire cutoffs) and exact phone tree shortcuts.
-4. **Varied Layout (DO NOT rigidly force 6 steps):**
-   - Choose the natural number of solutions that actually solves this problem (could be 3, 4, 5, or 7).
-   - Use ### H3 headers for each solution. Bold all interactive UI paths (**Settings** > **Security**).
-   - Where relevant, include telephone scripts or IVR shortcuts (e.g. how to reach a human fraud analyst).
-5. **AEO Optimization:** Provide a direct, bolded summary answer under 40 words right after the main H2 problem question to capture Google Featured Snippets.
-6. **Data & Alerts:** Include a concise diagnostic table early on, and use markdown blockquotes (> ⚠️, > 💡, > 🔴) only where genuinely critical.
-7. **Natural FAQ:** Provide 3 to 6 practical, non-obvious questions that real distressed users ask, answered directly and concisely.
-
-Output only the raw Markdown content.`;
-
-          // Try OpenAI first, then Gemini
-          if (openAI) {
-            try {
-              const response = await openAI.chat.completions.create({
-                model: 'gpt-4o-mini',
-                messages: [
-                  { role: 'system', content: 'You are an expert banking tech writer and SEO specialist.' },
-                  { role: 'user', content: prompt }
-                ],
-                temperature: 0.7,
-              });
-              article.content = response.choices[0].message.content;
-              article.word_count = article.content.split(/\s+/).length;
-            } catch (aiErr) { console.error('OpenAI error:', aiErr.message); }
-          } else if (genAI) {
-            try {
-              const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-              const result = await model.generateContent(prompt);
-              article.content = result.response.text();
-              article.word_count = article.content.split(/\s+/).length;
-            } catch (gemErr) { console.error('Gemini error:', gemErr.message); }
-          }
-
-          const slug = `${slugify(article.title, { lower: true, strict: true }).substring(0, 80)}-${Date.now()}`;
-          await supabase.from('bw_articles').insert({
-            error_id: error.id, bank_id: error.bank_id,
-            title: article.title, slug, content: article.content, excerpt: article.excerpt,
-            meta_description: article.metaDescription, category: article.category,
-            keywords: article.keywords, seo_score: 78, word_count: article.content.split(/\s+/).length,
-            status: 'published', featured: false, published_at: new Date().toISOString(),
-          });
-          await new Promise(r => setTimeout(r, 300)); // slight throttle
-        } catch (e) { console.error(`Failed to generate article for error ${error.id}:`, e.message); }
-      }
-    })().catch(console.error);
-
-  } catch(e) { res.status(500).json({ error: e.message }); }
+// AI Article Generation - Decommissioned
+app.post('/api/generate', (req, res) => {
+  res.status(403).json({ error: 'Automated article generation has been permanently disabled.' });
 });
 
 // Dynamic Sitemap
