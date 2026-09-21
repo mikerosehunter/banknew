@@ -17,6 +17,7 @@ import PrivacyPolicy from './pages/public/PrivacyPolicy';
 import Disclaimer from './pages/public/Disclaimer';
 import About from './pages/public/About';
 import Contact from './pages/public/Contact';
+import EditorialPolicy from './pages/public/EditorialPolicy';
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="about-us" element={<About />} />
           <Route path="contact" element={<Contact />} />
           <Route path="contact-us" element={<Contact />} />
+          <Route path="editorial-policy" element={<EditorialPolicy />} />
           <Route path="privacy-policy" element={<PrivacyPolicy />} />
           <Route path="privacy" element={<PrivacyPolicy />} />
           <Route path="disclaimer" element={<Disclaimer />} />

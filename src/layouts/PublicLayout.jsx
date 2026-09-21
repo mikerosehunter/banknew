@@ -81,7 +81,7 @@ export default function PublicLayout() {
             <div>
               <div className="pub-footer-logo">Bank<span>Login</span>Online</div>
               <p className="pub-footer-desc">
-                Real-time monitoring of US bank login errors, app crashes, and service outages. AI-powered fix guides updated 24/7.
+                Independent step-by-step troubleshooting guides for US banking login issues, mobile app errors, and account access problems.
               </p>
             </div>
             <div>
@@ -104,6 +104,7 @@ export default function PublicLayout() {
               <div className="pub-footer-heading">Company</div>
               <ul>
                 <li><Link to="/about">About Us</Link></li>
+                <li><Link to="/editorial-policy">Editorial Policy</Link></li>
                 <li><Link to="/contact">Contact Us</Link></li>
                 <li><Link to="/privacy-policy">Privacy Policy</Link></li>
                 <li><Link to="/disclaimer">Disclaimer</Link></li>
@@ -111,8 +112,8 @@ export default function PublicLayout() {
             </div>
           </div>
           <div className="pub-footer-bottom">
-            <div>© {new Date().getFullYear()} BankLoginOnline.com — 24/7 Troubleshooting Guides · For educational purposes only</div>
-            <div>Not affiliated with any bank. Funds are FDIC insured.</div>
+            <div>© {new Date().getFullYear()} BankLoginOnline.com — Independent Banking Troubleshooting Guides · For educational purposes only</div>
+            <div>Independent support directory. Not affiliated with, endorsed by, or sponsored by any financial institution.</div>
           </div>
         </div>
       </footer>

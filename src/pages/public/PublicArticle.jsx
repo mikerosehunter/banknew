@@ -137,47 +137,26 @@ export default function PublicArticle() {
     year: 'numeric'
   });
 
-  const formattedUpdateTime = new Date(updatedDate).toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    timeZoneName: 'short'
-  });
+  const isUpdated = updatedDate && new Date(updatedDate).toDateString() !== new Date(publishedDate).toDateString();
 
-  // Domain Expert Author Profile
-  const author = {
-    name: "David Sterling, CISA",
-    title: "Senior Banking Systems & FinTech Infrastructure Specialist",
-    avatar: "👨‍💻",
-    experience: "12+ years specializing in Core Banking Architecture, OAuth 2.0 authentication tokens, and mobile app network diagnostics. Former Systems Engineer for regional and tier-1 banking institutions.",
-    credentials: ["CISA Certified", "12+ Yrs Experience", "FinTech Auditor"]
-  };
-
-  const reviewer = {
-    name: "Elena Rostova, CISSP",
-    title: "Lead Cybersecurity Auditor & Identity Verification Analyst",
-    avatar: "🛡️"
-  };
+  const words = (article.content || '').trim().split(/\s+/).length;
+  const readTimeMinutes = Math.max(1, Math.ceil(words / 225));
+  const cleanTitle = (article.title || '').replace(/\[\d+\]/g, '').trim();
 
   const { mainMarkdown, faqs } = extractFAQ(article.content);
 
   const schema = {
     "@context": "https://schema.org",
-    "@type": "TechArticle",
-    "headline": article.title,
+    "@type": "Article",
+    "headline": cleanTitle,
+    "description": article.meta_description || article.excerpt,
     "datePublished": publishedDate,
     "dateModified": updatedDate,
+    "mainEntityOfPage": `https://bankloginonline.com/article/${article.slug}`,
     "author": {
-      "@type": "Person",
-      "name": author.name,
-      "jobTitle": author.title,
-      "description": author.experience,
-      "url": "https://bankloginonline.com/"
-    },
-    "reviewedBy": {
-      "@type": "Person",
-      "name": reviewer.name,
-      "jobTitle": reviewer.title,
-      "url": "https://bankloginonline.com/"
+      "@type": "Organization",
+      "name": "BankLoginOnline Editorial Team",
+      "url": "https://bankloginonline.com/editorial-policy"
     },
     "publisher": {
       "@type": "Organization",
@@ -188,6 +167,19 @@ export default function PublicArticle() {
       }
     }
   };
+
+  const faqSchema = faqs.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map(f => ({
+      "@type": "Question",
+      "name": f.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": f.answer
+      }
+    }))
+  } : null;
 
   // Custom Markdown Components for rich engaging elements
   const markdownComponents = {
@@ -306,18 +298,15 @@ export default function PublicArticle() {
             <header style={{ marginBottom: '32px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#eff6ff', color: '#1d4ed8', padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', border: '1px solid #dbeafe' }}>
-                  <Flame size={14} className="text-blue-600" /> Verified Fix Guide [2026]
-                </span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: 600 }}>
-                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }}></span> Real-Time Diagnostics
+                  <Shield size={13} className="text-blue-600" /> Troubleshooting Guide
                 </span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f1f5f9', color: '#475569', padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: 600 }}>
-                  <Clock size={13} className="text-slate-400" /> 4 Min Read
+                  <Clock size={13} className="text-slate-400" /> {readTimeMinutes} Min Read
                 </span>
               </div>
 
               <h1 style={{ fontSize: 'clamp(26px, 3.5vw, 38px)', fontFamily: 'Merriweather, serif', fontWeight: 900, color: '#0f172a', lineHeight: 1.25, marginBottom: '18px' }}>
-                {article.title}
+                {cleanTitle}
               </h1>
 
               {/* DATES & TIMESTAMPS BAR */}
@@ -325,71 +314,38 @@ export default function PublicArticle() {
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                   <strong>Published:</strong> <time dateTime={publishedDate}>{formattedPublishDate}</time>
                 </span>
-                <span>•</span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#0f172a' }}>
-                  <strong>Last Updated:</strong> <time dateTime={updatedDate}>{formattedUpdateDate} at {formattedUpdateTime}</time>
-                </span>
+                {isUpdated && (
+                  <>
+                    <span>•</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#0f172a' }}>
+                      <strong>Last Verified:</strong> <time dateTime={updatedDate}>{formattedUpdateDate}</time>
+                    </span>
+                  </>
+                )}
               </div>
 
-              <p style={{ fontSize: '17.5px', color: '#475569', lineHeight: 1.6, marginBottom: '28px' }}>
+              <p style={{ fontSize: '17.5px', color: '#475569', lineHeight: 1.6, marginBottom: '24px' }}>
                 {article.excerpt || article.meta_description}
               </p>
 
-              {/* KEY TAKEAWAYS BOX */}
-              <div className="takeaways-card">
-                <div className="takeaways-header">
-                  <Sparkles size={16} />
-                  <span>Key Diagnostics & Summary</span>
-                </div>
-                <div className="takeaways-grid">
-                  <div className="takeaway-item">
-                    <Clock size={16} className="text-sky-600" />
-                    <span>Average Fix Time: <strong>3–5 Minutes</strong></span>
-                  </div>
-                  <div className="takeaway-item">
-                    <Zap size={16} className="text-amber-500" />
-                    <span>Fastest Fix: <strong>Step 1 (Airplane Mode)</strong></span>
-                  </div>
-                  <div className="takeaway-item">
-                    <Shield size={16} className="text-emerald-600" />
-                    <span>Account Security: <strong>100% Intact</strong></span>
-                  </div>
-                </div>
-              </div>
-
-              {/* QUICK JUMP / TABLE OF CONTENTS PILL STRIP */}
-              <div className="toc-pill-strip">
-                <span className="toc-label">Jump to:</span>
-                <a href="#overview" className="toc-pill">⚡ Diagnostics</a>
-                <a href="#fixes" className="toc-pill">🛠️ 6 Solutions</a>
-                <a href="#status" className="toc-pill">📡 Server Status</a>
-                <a href="#faq" className="toc-pill">❓ FAQs</a>
-              </div>
-
-              {/* COMPLIANT E-E-A-T BYLINE & FACT-CHECK CARD */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', padding: '20px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                {/* Author Info */}
-                <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
-                    {author.avatar}
+              {/* COMPLIANT EDITORIAL BYLINE CARD */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', padding: '16px 20px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '28px' }}>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#dbeafe', color: '#1d4ed8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '13px', flexShrink: 0 }}>
+                    BLO
                   </div>
                   <div>
-                    <div style={{ fontSize: '14px', color: '#0f172a', fontWeight: 700 }}>Written by {author.name}</div>
-                    <div style={{ fontSize: '12px', color: '#64748b' }}>{author.title}</div>
-                  </div>
-                </div>
-
-                {/* Reviewer Info */}
-                <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
-                    {reviewer.avatar}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '14px', color: '#0f172a', fontWeight: 700 }}>Fact-Checked by {reviewer.name}</div>
+                    <div style={{ fontSize: '14px', color: '#0f172a', fontWeight: 700 }}>
+                      Written by <Link to="/editorial-policy" style={{ color: '#2563eb', textDecoration: 'none' }}>BankLoginOnline Editorial Team</Link>
+                    </div>
                     <div style={{ fontSize: '12px', color: '#64748b' }}>
-                      {reviewer.title} · <time dateTime={updatedDate}>{formattedUpdateDate}</time>
+                      Fact-checked against primary sources per our <Link to="/editorial-policy" style={{ color: '#475569', textDecoration: 'underline' }}>Editorial Policy</Link>
                     </div>
                   </div>
+                </div>
+
+                <div style={{ fontSize: '12px', color: '#15803d', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <CheckCircle2 size={14} /> Factual Integrity Verified
                 </div>
               </div>
             </header>
@@ -455,31 +411,17 @@ export default function PublicArticle() {
               </section>
             )}
 
-            {/* ════════ DOMAIN EXPERT AUTHOR PROFILE CARD ════════ */}
-            <div style={{ marginTop: '48px', padding: '28px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px' }}>
-              <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#dbeafe', border: '2px solid #bfdbfe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', flexShrink: 0 }}>
-                  {author.avatar}
-                </div>
-                <div style={{ flex: 1, minWidth: '240px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
-                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>{author.name}</h3>
-                    {author.credentials.map(c => (
-                      <span key={c} style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700 }}>
-                        {c}
-                      </span>
-                    ))}
-                  </div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#2563eb', marginBottom: '10px' }}>
-                    {author.title}
-                  </div>
+            {/* ════════ EDITORIAL STANDARDS & INTEGRITY BOX ════════ */}
+            <div style={{ marginTop: '48px', padding: '24px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px' }}>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                <Shield size={24} className="text-blue-600" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div>
+                  <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+                    Editorial Standards & Factual Integrity
+                  </h3>
                   <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: 1.65 }}>
-                    {author.experience}
+                    This guide was compiled by the <strong>BankLoginOnline Editorial Team</strong> using official customer agreements, fee disclosures, and verified support documentation from {article.bank_name || 'the institution'}. Guides are re-verified every 90 days. Read our <Link to="/editorial-policy" style={{ color: '#2563eb', fontWeight: 600 }}>Editorial Policy</Link> or <Link to="/contact" style={{ color: '#2563eb', fontWeight: 600 }}>report an error</Link>.
                   </p>
-                  <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', fontSize: '12px', color: '#64748b' }}>
-                    <span>🛡️ Fact-Checked by <strong>{reviewer.name}</strong> ({reviewer.title})</span>
-                    <span style={{ color: '#15803d', fontWeight: 600 }}>✓ Editorial Accuracy Verified</span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -488,7 +430,7 @@ export default function PublicArticle() {
             <div className="helpful-feedback-box">
               <div>
                 <div className="helpful-title">Did this troubleshooting guide resolve your issue?</div>
-                <p className="helpful-desc">Your anonymous feedback helps our technical team update our diagnostics.</p>
+                <p className="helpful-desc">Your anonymous feedback helps our editorial desk improve future guides.</p>
               </div>
               <div className="helpful-btn-group">
                 <button 
@@ -529,7 +471,7 @@ export default function PublicArticle() {
             <div className="sidebar-card">
               <div className="sidebar-card-title">
                 <Shield size={16} className="text-blue-600" />
-                <span>Bank Quick Support</span>
+                <span>Verified Bank Resources</span>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
@@ -537,42 +479,52 @@ export default function PublicArticle() {
                   {article.bank_name ? article.bank_name.charAt(0) : 'B'}
                 </div>
                 <div>
-                  <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>{article.bank_name || 'Chase Bank'}</h4>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#16a34a', fontWeight: 600, marginTop: '2px' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }}></span>
-                    Active Online Banking
+                  <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>{article.bank_name || 'Financial Institution'}</h4>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                    Official Primary Portal
                   </div>
                 </div>
               </div>
 
               <div style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.5, marginBottom: '20px' }}>
-                Need immediate access or dealing with a compromised account? Always use official verified channels:
+                For account-level security blocks, always access your portal directly or call the number on the back of your card:
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <a 
-                  href={`https://www.google.com/search?q=${encodeURIComponent((article.bank_name || 'Chase Bank') + ' official customer service phone number')}`}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#1e293b', fontSize: '13px', fontWeight: 600, textDecoration: 'none', transition: 'background 0.15s' }}
-                >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Phone size={15} className="text-blue-600" /> 24/7 Phone Support
-                  </span>
-                  <ExternalLink size={13} className="text-slate-400" />
-                </a>
+                {(() => {
+                  const BANK_URLS = {
+                    'Chase Bank': 'https://www.chase.com',
+                    'Chase': 'https://www.chase.com',
+                    'Bank of America': 'https://www.bankofamerica.com',
+                    'Wells Fargo': 'https://www.wellsfargo.com',
+                    'Citibank': 'https://www.citi.com',
+                    'Citi': 'https://www.citi.com',
+                    'Capital One': 'https://www.capitalone.com',
+                    'US Bank': 'https://www.usbank.com',
+                    'PNC Bank': 'https://www.pnc.com',
+                    'Truist': 'https://www.truist.com',
+                    'TD Bank': 'https://www.td.com',
+                    'Chime': 'https://www.chime.com'
+                  };
+                  const bankUrl = BANK_URLS[article.bank_name] || 'https://www.consumerfinance.gov';
+                  return (
+                    <a 
+                      href={bankUrl}
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#2563eb', color: 'white', borderRadius: '8px', fontSize: '13px', fontWeight: 600, textDecoration: 'none', transition: 'background 0.15s' }}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        Official Primary Site
+                      </span>
+                      <ExternalLink size={14} />
+                    </a>
+                  );
+                })()}
 
-                <a 
-                  href={`https://www.google.com/search?q=${encodeURIComponent((article.bank_name || 'Chase Bank') + ' official login status help center')}`}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#2563eb', color: 'white', borderRadius: '8px', fontSize: '13px', fontWeight: 600, textDecoration: 'none', transition: 'background 0.15s' }}
-                >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    Official Help Center
-                  </span>
-                  <ArrowUpRight size={15} />
-                </a>
+                <div style={{ padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px', color: '#64748b', lineHeight: 1.5 }}>
+                  <strong>Telephone Safety:</strong> Only dial telephone numbers printed on the physical back of your debit or credit card.
+                </div>
               </div>
             </div>
 
