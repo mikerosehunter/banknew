@@ -7,7 +7,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 
 async function publishFiles(fileList) {
   for (const filename of fileList) {
-    const filePath = path.join(__dirname, 'bofa_batch1', filename);
+    const filePath = path.isAbsolute(filename) ? filename : (fs.existsSync(filename) ? filename : path.join(__dirname, 'bofa_batch1', filename));
     if (!fs.existsSync(filePath)) {
       console.error(`File not found: ${filePath}`);
       continue;
