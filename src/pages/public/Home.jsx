@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getArticles, getCategories, prefetchArticle } from '../../lib/api';
-import { Search, ArrowRight, TrendingUp, BookOpen, Shield, Zap } from 'lucide-react';
+import { Search, ArrowRight, TrendingUp, BookOpen, Shield, Zap, X, AlertCircle } from 'lucide-react';
 
 // The 80 topic categories that get featured on the homepage
 const TOPIC_SLUGS = [
@@ -18,6 +18,95 @@ const TOPIC_SLUGS = [
   'rewards-cashback-problems','customer-support-issues','loan-credit-issues'
 ];
 
+// Smart search scoring across articles and categories
+function performSearch(query, allArticles, allCategories) {
+  if (!query || !query.trim()) return { articleMatches: [], categoryMatches: [], isFallback: false };
+
+  const raw = query.trim().toLowerCase();
+  const words = raw.split(/\s+/).filter(w => w.length > 1);
+
+  // Common banking aliases
+  const isChaseQuery = raw.includes('chase') || raw.includes('jpmorgan') || raw.includes('jpm');
+  const isBofaQuery = raw.includes('bofa') || raw.includes('boa') || raw.includes('america') || raw.includes('b of a');
+
+  // 1. Score Articles
+  const scoredArticles = (allArticles || []).map(article => {
+    let score = 0;
+    const titleLower = (article.title || '').toLowerCase();
+    const excerptLower = (article.excerpt || article.meta_description || '').toLowerCase();
+    const bankLower = (article.bank_name || '').toLowerCase();
+    const slugLower = (article.slug || '').toLowerCase();
+
+    // Exact title phrase match
+    if (titleLower === raw) score += 250;
+    else if (titleLower.startsWith(raw)) score += 140;
+    else if (titleLower.includes(raw)) score += 80;
+
+    // Slug match
+    if (slugLower.includes(raw.replace(/\s+/g, '-'))) score += 70;
+
+    // Bank match
+    if (isChaseQuery && bankLower.includes('chase')) score += 30;
+    if (isBofaQuery && bankLower.includes('america')) score += 30;
+
+    // Token matches in title
+    for (const token of words) {
+      if (titleLower.includes(token)) score += 30;
+      if (excerptLower.includes(token)) score += 8;
+      if (bankLower.includes(token)) score += 20;
+    }
+
+    // Number matching (e.g. error codes 99, 900, 350, 53004)
+    const numbers = raw.match(/\d+/g) || [];
+    for (const num of numbers) {
+      if (titleLower.includes(num)) score += 70;
+    }
+
+    return { ...article, score, itemType: 'article' };
+  }).filter(a => a.score > 0).sort((a, b) => b.score - a.score);
+
+  // 2. Score Categories
+  const scoredCategories = (allCategories || []).map(cat => {
+    let score = 0;
+    const labelLower = (cat.label || '').toLowerCase();
+    const descLower = (cat.description || '').toLowerCase();
+    const slugLower = (cat.slug || '').toLowerCase();
+
+    if (labelLower === raw) score += 180;
+    else if (labelLower.startsWith(raw)) score += 110;
+    else if (labelLower.includes(raw)) score += 60;
+
+    for (const token of words) {
+      if (labelLower.includes(token)) score += 25;
+      if (descLower.includes(token)) score += 6;
+      if (slugLower.includes(token)) score += 10;
+    }
+
+    return { ...cat, score, itemType: 'category' };
+  }).filter(c => c.score > 0).sort((a, b) => b.score - a.score);
+
+  const totalMatches = scoredArticles.length + scoredCategories.length;
+  if (totalMatches === 0) {
+    // If no direct matches, return top popular articles as helpful fallback
+    const popularFallbacks = (allArticles || []).slice(0, 4).map(a => ({
+      ...a,
+      isSuggestedFallback: true,
+      itemType: 'article'
+    }));
+    return {
+      articleMatches: popularFallbacks,
+      categoryMatches: [],
+      isFallback: true
+    };
+  }
+
+  return {
+    articleMatches: scoredArticles.slice(0, 5),
+    categoryMatches: scoredCategories.slice(0, 3),
+    isFallback: false
+  };
+}
+
 export default function Home() {
   const [articles, setArticles] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -27,7 +116,9 @@ export default function Home() {
   const [selectedBankFilter, setSelectedBankFilter] = useState('all');
   const [visibleCount, setVisibleCount] = useState(12);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
+  const [activeSearchQuery, setActiveSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState({ articleMatches: [], categoryMatches: [], isFallback: false });
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const [showDropdown, setShowDropdown] = useState(false);
   const [activeLetter, setActiveLetter] = useState('Top');
   const searchRef = useRef(null);
@@ -70,14 +161,26 @@ export default function Home() {
     }).finally(() => setLoading(false));
   }, []);
 
-  // Live search
+  // Live search suggestions as user types
   useEffect(() => {
-    if (!searchQuery.trim()) { setSearchResults([]); setShowDropdown(false); return; }
-    const q = searchQuery.toLowerCase();
-    const results = categories.filter(c => c.label.toLowerCase().includes(q)).slice(0, 6);
+    if (!searchQuery.trim()) {
+      setSearchResults({ articleMatches: [], categoryMatches: [], isFallback: false });
+      setShowDropdown(false);
+      setSelectedIndex(-1);
+      return;
+    }
+    const results = performSearch(searchQuery, articles, categories);
     setSearchResults(results);
-    setShowDropdown(results.length > 0);
-  }, [searchQuery, categories]);
+    const hasAny = results.articleMatches.length > 0 || results.categoryMatches.length > 0;
+    setShowDropdown(hasAny);
+    setSelectedIndex(-1);
+  }, [searchQuery, articles, categories]);
+
+  // Combined flat list for keyboard arrow navigation
+  const combinedResults = useMemo(() => [
+    ...(searchResults.articleMatches || []).map(a => ({ ...a, itemType: 'article' })),
+    ...(searchResults.categoryMatches || []).map(c => ({ ...c, itemType: 'category' }))
+  ], [searchResults]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -86,9 +189,51 @@ export default function Home() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  const handleSelectResult = (item) => {
+    setShowDropdown(false);
+    if (item.itemType === 'article') {
+      prefetchArticle(item.slug);
+      navigate(`/guides/${item.slug}`, { state: { article: item } });
+    } else if (item.itemType === 'category') {
+      const isTopic = TOPIC_SLUGS.includes(item.slug);
+      navigate(isTopic ? `/issues/${item.slug}` : `/banks/${item.slug}`);
+    }
+  };
+
+  const handleSearchSubmit = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const q = searchQuery.trim();
+    if (!q) return;
+
+    // If an item in dropdown was actively highlighted via arrows, select it
+    if (selectedIndex >= 0 && combinedResults[selectedIndex]) {
+      handleSelectResult(combinedResults[selectedIndex]);
+      return;
+    }
+
+    // Apply search to the homepage feed and scroll smoothly to results
+    setVisibleCount(12);
+    setActiveSearchQuery(q);
+    setShowDropdown(false);
+    setTimeout(() => {
+      const el = document.getElementById('latest-guides');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
+  };
+
   const handleSearchKeyDown = (e) => {
-    if (e.key === 'Enter' && searchResults.length > 0) {
-      navigate(`/banks/${searchResults[0].slug}`);
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (!showDropdown) setShowDropdown(true);
+      setSelectedIndex(prev => (prev < combinedResults.length - 1 ? prev + 1 : 0));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!showDropdown) setShowDropdown(true);
+      setSelectedIndex(prev => (prev > 0 ? prev - 1 : combinedResults.length - 1));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSearchSubmit();
+    } else if (e.key === 'Escape') {
       setShowDropdown(false);
     }
   };
@@ -96,14 +241,51 @@ export default function Home() {
   const chaseCount = articles.filter(a => a.bank_name?.toLowerCase().includes('chase')).length;
   const bofaCount = articles.filter(a => a.bank_name?.toLowerCase().includes('america')).length;
 
-  const filteredArticles = articles.filter(a => {
-    if (selectedBankFilter === 'chase') return a.bank_name?.toLowerCase().includes('chase');
-    if (selectedBankFilter === 'bofa') return a.bank_name?.toLowerCase().includes('america');
-    return true;
-  });
+  // Search feed calculations
+  const searchFeedResults = activeSearchQuery 
+    ? articles.map(a => {
+        let score = 0;
+        const q = activeSearchQuery.toLowerCase().trim();
+        const words = q.split(/\s+/).filter(w => w.length > 1);
+        const titleLower = (a.title || '').toLowerCase();
+        const excerptLower = (a.excerpt || a.meta_description || '').toLowerCase();
+        const bankLower = (a.bank_name || '').toLowerCase();
+        const slugLower = (a.slug || '').toLowerCase();
 
-  const featuredArticle = filteredArticles[0] || null;
-  const recentArticles = filteredArticles.slice(1, visibleCount);
+        if (titleLower === q) score += 200;
+        else if (titleLower.includes(q)) score += 100;
+        else if (slugLower.includes(q.replace(/\s+/g, '-'))) score += 70;
+
+        if (q.includes('chase') && bankLower.includes('chase')) score += 30;
+        if ((q.includes('bofa') || q.includes('america') || q.includes('boa')) && bankLower.includes('america')) score += 30;
+
+        for (const w of words) {
+          if (titleLower.includes(w)) score += 25;
+          if (excerptLower.includes(w)) score += 8;
+          if (bankLower.includes(w)) score += 15;
+        }
+
+        const numbers = q.match(/\d+/g) || [];
+        for (const num of numbers) {
+          if (titleLower.includes(num)) score += 60;
+        }
+
+        return { ...a, score };
+      }).filter(a => a.score > 0).sort((a, b) => b.score - a.score)
+    : [];
+
+  const isSearchNoMatch = activeSearchQuery && searchFeedResults.length === 0;
+
+  const filteredArticles = activeSearchQuery
+    ? (isSearchNoMatch ? articles.slice(0, 10) : searchFeedResults)
+    : articles.filter(a => {
+        if (selectedBankFilter === 'chase') return a.bank_name?.toLowerCase().includes('chase');
+        if (selectedBankFilter === 'bofa') return a.bank_name?.toLowerCase().includes('america');
+        return true;
+      });
+
+  const featuredArticle = activeSearchQuery ? null : (filteredArticles[0] || null);
+  const recentArticles = activeSearchQuery ? filteredArticles.slice(0, visibleCount) : filteredArticles.slice(1, visibleCount);
 
   return (
     <div>
@@ -123,30 +305,250 @@ export default function Home() {
 
           {/* Search */}
           <div ref={searchRef} style={{ position: 'relative', maxWidth: '620px', margin: '0 auto' }}>
-            <div className="pub-search-wrap">
-              <Search size={20} />
+            <form onSubmit={handleSearchSubmit} className="pub-search-wrap">
+              <Search className="pub-search-icon" size={20} />
               <input
                 type="text"
                 className="pub-search"
-                placeholder="Search your bank or problem (e.g. Chase login error)..."
+                placeholder="Search your bank or problem (e.g. Chase error 99)..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
+                onFocus={() => {
+                  if (searchQuery.trim() && combinedResults.length > 0) setShowDropdown(true);
+                }}
               />
-            </div>
-            {showDropdown && (
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setActiveSearchQuery('');
+                    setShowDropdown(false);
+                  }}
+                  style={{
+                    position: 'absolute',
+                    right: '84px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: 'rgba(255,255,255,0.7)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '6px',
+                    borderRadius: '50%',
+                    zIndex: 2
+                  }}
+                  title="Clear search"
+                  aria-label="Clear search"
+                >
+                  <X size={16} />
+                </button>
+              )}
+              <button
+                type="submit"
+                style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: '#2563eb',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '9px 16px',
+                  fontWeight: 600,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  boxShadow: '0 2px 8px rgba(37,99,235,0.4)',
+                  zIndex: 2
+                }}
+              >
+                Search
+              </button>
+            </form>
+
+            {showDropdown && combinedResults.length > 0 && (
               <div className="pub-search-dropdown">
-                {searchResults.map(r => (
-                  <Link key={r.slug} to={`/banks/${r.slug}`} className="pub-search-result-item" onClick={() => setShowDropdown(false)}>
-                    <span style={{ fontSize: '20px' }}>{r.icon}</span>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: '14px' }}>{r.label}</div>
-                      <div style={{ fontSize: '12px', color: '#94a3b8' }}>{r.description}</div>
+                {searchResults.isFallback && (
+                  <div style={{
+                    background: '#eff6ff',
+                    borderBottom: '1px solid #dbeafe',
+                    padding: '10px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '12px',
+                    color: '#1e40af'
+                  }}>
+                    <AlertCircle size={15} style={{ flexShrink: 0, color: '#2563eb' }} />
+                    <span>No exact match for <strong>&ldquo;{searchQuery}&rdquo;</strong>. Showing recommended guides:</span>
+                  </div>
+                )}
+
+                {searchResults.articleMatches && searchResults.articleMatches.length > 0 && (
+                  <div>
+                    <div style={{
+                      padding: '8px 16px 4px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      color: '#64748b',
+                      background: '#f8fafc',
+                      borderBottom: '1px solid #f1f5f9'
+                    }}>
+                      Troubleshooting Guides
                     </div>
-                    <ArrowRight size={14} style={{ marginLeft: 'auto', color: '#94a3b8' }} />
-                  </Link>
-                ))}
+                    {searchResults.articleMatches.map(art => {
+                      const itemIdx = combinedResults.findIndex(x => x.itemType === 'article' && x.slug === art.slug);
+                      const isSelected = itemIdx === selectedIndex;
+                      return (
+                        <div
+                          key={`art-${art.slug}`}
+                          className={`pub-search-result-item ${isSelected ? 'is-selected' : ''}`}
+                          style={{
+                            background: isSelected ? '#f1f5f9' : undefined,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '12px 16px',
+                            cursor: 'pointer'
+                          }}
+                          onMouseEnter={() => setSelectedIndex(itemIdx)}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleSelectResult({ ...art, itemType: 'article' });
+                          }}
+                        >
+                          <div style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '8px',
+                            background: '#eff6ff',
+                            color: '#2563eb',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                          }}>
+                            <BookOpen size={16} />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{
+                              fontWeight: 600,
+                              fontSize: '13px',
+                              color: '#0f172a',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}>
+                              {art.title}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+                              {art.bank_name && (
+                                <span style={{
+                                  fontSize: '11px',
+                                  color: '#2563eb',
+                                  background: '#dbeafe',
+                                  padding: '1px 6px',
+                                  borderRadius: '4px',
+                                  fontWeight: 600
+                                }}>
+                                  {art.bank_name}
+                                </span>
+                              )}
+                              <span style={{ fontSize: '11px', color: '#94a3b8' }}>Verified Fix</span>
+                            </div>
+                          </div>
+                          <ArrowRight size={14} style={{ color: isSelected ? '#2563eb' : '#cbd5e1', flexShrink: 0 }} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {searchResults.categoryMatches && searchResults.categoryMatches.length > 0 && (
+                  <div>
+                    <div style={{
+                      padding: '8px 16px 4px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      color: '#64748b',
+                      background: '#f8fafc',
+                      borderTop: '1px solid #f1f5f9',
+                      borderBottom: '1px solid #f1f5f9'
+                    }}>
+                      Banks & Categories
+                    </div>
+                    {searchResults.categoryMatches.map(cat => {
+                      const itemIdx = combinedResults.findIndex(x => x.itemType === 'category' && x.slug === cat.slug);
+                      const isSelected = itemIdx === selectedIndex;
+                      return (
+                        <div
+                          key={`cat-${cat.slug}`}
+                          className={`pub-search-result-item ${isSelected ? 'is-selected' : ''}`}
+                          style={{
+                            background: isSelected ? '#f1f5f9' : undefined,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '12px 16px',
+                            cursor: 'pointer'
+                          }}
+                          onMouseEnter={() => setSelectedIndex(itemIdx)}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleSelectResult({ ...cat, itemType: 'category' });
+                          }}
+                        >
+                          <span style={{ fontSize: '20px', flexShrink: 0, width: '28px', textAlign: 'center' }}>
+                            {cat.icon || '🏦'}
+                          </span>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{
+                              fontWeight: 600,
+                              fontSize: '13px',
+                              color: '#0f172a',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}>
+                              {cat.label}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#64748b' }}>
+                              {cat.description || (TOPIC_SLUGS.includes(cat.slug) ? 'Problem Category' : 'Bank Portal')}
+                            </div>
+                          </div>
+                          <ArrowRight size={14} style={{ color: isSelected ? '#2563eb' : '#cbd5e1', flexShrink: 0 }} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Dropdown footer shortcuts */}
+                <div style={{
+                  padding: '8px 16px',
+                  background: '#f8fafc',
+                  borderTop: '1px solid #f1f5f9',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: '11px',
+                  color: '#64748b'
+                }}>
+                  <span>Press <kbd style={{ background: '#e2e8f0', padding: '1px 5px', borderRadius: '4px', fontFamily: 'monospace' }}>Enter</kbd> to search all</span>
+                  <span><kbd style={{ background: '#e2e8f0', padding: '1px 5px', borderRadius: '4px', fontFamily: 'monospace' }}>↑</kbd> <kbd style={{ background: '#e2e8f0', padding: '1px 5px', borderRadius: '4px', fontFamily: 'monospace' }}>↓</kbd> to navigate</span>
+                </div>
               </div>
             )}
           </div>
@@ -218,67 +620,135 @@ export default function Home() {
           <main id="latest-guides">
             <h2 className="pub-section-title">
               <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <TrendingUp size={20} color="#2563eb" /> Recently Updated Bank Troubleshooting Guides
+                <TrendingUp size={20} color="#2563eb" /> {activeSearchQuery ? `Search Results for "${activeSearchQuery}"` : 'Recently Updated Bank Troubleshooting Guides'}
               </span>
             </h2>
 
-            {/* Quick Bank Filters */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                onClick={() => { setSelectedBankFilter('all'); setVisibleCount(12); }}
-                style={{
-                  padding: '7px 16px',
-                  borderRadius: '20px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  border: '1px solid',
-                  borderColor: selectedBankFilter === 'all' ? '#2563eb' : '#e2e8f0',
-                  background: selectedBankFilter === 'all' ? '#2563eb' : '#fff',
-                  color: selectedBankFilter === 'all' ? '#fff' : '#475569',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                All Guides ({articles.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => { setSelectedBankFilter('chase'); setVisibleCount(12); }}
-                style={{
-                  padding: '7px 16px',
-                  borderRadius: '20px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  border: '1px solid',
-                  borderColor: selectedBankFilter === 'chase' ? '#2563eb' : '#e2e8f0',
-                  background: selectedBankFilter === 'chase' ? '#2563eb' : '#fff',
-                  color: selectedBankFilter === 'chase' ? '#fff' : '#475569',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                Chase Bank ({chaseCount})
-              </button>
-              <button
-                type="button"
-                onClick={() => { setSelectedBankFilter('bofa'); setVisibleCount(12); }}
-                style={{
-                  padding: '7px 16px',
-                  borderRadius: '20px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  border: '1px solid',
-                  borderColor: selectedBankFilter === 'bofa' ? '#2563eb' : '#e2e8f0',
-                  background: selectedBankFilter === 'bofa' ? '#2563eb' : '#fff',
-                  color: selectedBankFilter === 'bofa' ? '#fff' : '#475569',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                Bank of America ({bofaCount})
-              </button>
-            </div>
+            {/* Active Search Banner / No-Match Fallback Notice */}
+            {activeSearchQuery && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+                padding: '16px 20px',
+                borderRadius: '12px',
+                marginBottom: '24px',
+                border: '1px solid',
+                background: isSearchNoMatch ? '#fffbeb' : '#eff6ff',
+                borderColor: isSearchNoMatch ? '#fde68a' : '#bfdbfe',
+                color: isSearchNoMatch ? '#92400e' : '#1e40af'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <AlertCircle size={20} style={{ flexShrink: 0, marginTop: '2px', color: isSearchNoMatch ? '#d97706' : '#2563eb' }} />
+                  <div>
+                    {isSearchNoMatch ? (
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '15px' }}>
+                          No exact guides found for &ldquo;{activeSearchQuery}&rdquo;
+                        </div>
+                        <div style={{ fontSize: '13px', marginTop: '4px', color: '#78350f' }}>
+                          Showing the most relevant and popular solutions below to help resolve your issue:
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '15px' }}>
+                          Found {filteredArticles.length} guide{filteredArticles.length === 1 ? '' : 's'} matching &ldquo;{activeSearchQuery}&rdquo;
+                        </div>
+                        <div style={{ fontSize: '13px', marginTop: '4px', opacity: 0.85 }}>
+                          Step-by-step verified fixes matching your query:
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveSearchQuery('');
+                    setSearchQuery('');
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    background: '#fff',
+                    color: '#334155',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                  }}
+                >
+                  <X size={15} /> Clear Search
+                </button>
+              </div>
+            )}
+
+            {/* Quick Bank Filters (hidden during search) */}
+            {!activeSearchQuery && (
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => { setSelectedBankFilter('all'); setVisibleCount(12); }}
+                  style={{
+                    padding: '7px 16px',
+                    borderRadius: '20px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    border: '1px solid',
+                    borderColor: selectedBankFilter === 'all' ? '#2563eb' : '#e2e8f0',
+                    background: selectedBankFilter === 'all' ? '#2563eb' : '#fff',
+                    color: selectedBankFilter === 'all' ? '#fff' : '#475569',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  All Guides ({articles.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setSelectedBankFilter('chase'); setVisibleCount(12); }}
+                  style={{
+                    padding: '7px 16px',
+                    borderRadius: '20px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    border: '1px solid',
+                    borderColor: selectedBankFilter === 'chase' ? '#2563eb' : '#e2e8f0',
+                    background: selectedBankFilter === 'chase' ? '#2563eb' : '#fff',
+                    color: selectedBankFilter === 'chase' ? '#fff' : '#475569',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  Chase Bank ({chaseCount})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setSelectedBankFilter('bofa'); setVisibleCount(12); }}
+                  style={{
+                    padding: '7px 16px',
+                    borderRadius: '20px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    border: '1px solid',
+                    borderColor: selectedBankFilter === 'bofa' ? '#2563eb' : '#e2e8f0',
+                    background: selectedBankFilter === 'bofa' ? '#2563eb' : '#fff',
+                    color: selectedBankFilter === 'bofa' ? '#fff' : '#475569',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  Bank of America ({bofaCount})
+                </button>
+              </div>
+            )}
 
             {loading ? (
               <div style={{ opacity: 0.5, padding: '20px 0' }}>Loading articles...</div>
@@ -314,7 +784,7 @@ export default function Home() {
                 {/* Recent Articles */}
                 {recentArticles.map(a => (
                   <Link
-                    key={a.id}
+                    key={a.id || a.slug}
                     to={`/guides/${a.slug}`}
                     state={{ article: a }}
                     onMouseEnter={() => prefetchArticle(a.slug)}

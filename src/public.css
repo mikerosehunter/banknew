@@ -256,26 +256,39 @@
   max-width: 600px;
   margin: 0 auto;
 }
-.pub-search-wrap svg {
+.pub-search-wrap > svg.pub-search-icon,
+.pub-search-wrap > svg:first-child {
   position: absolute;
   left: 18px; top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
+  pointer-events: none;
+  z-index: 2;
+}
+.pub-search-wrap button svg {
+  position: static;
+  transform: none;
+  color: inherit;
 }
 .pub-search {
   width: 100%;
-  padding: 18px 18px 18px 52px;
+  padding: 16px 120px 16px 52px;
   border-radius: 14px;
-  border: 2px solid rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.12);
+  border: 2px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.14);
   color: white;
   font-size: 16px;
   backdrop-filter: blur(10px);
   transition: all 0.2s;
   outline: none;
+  box-sizing: border-box;
 }
-.pub-search::placeholder { color: rgba(255,255,255,0.6); }
-.pub-search:focus { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.5); box-shadow: 0 0 0 4px rgba(255,255,255,0.1); }
+.pub-search::placeholder { color: rgba(255,255,255,0.65); }
+.pub-search:focus {
+  background: rgba(255,255,255,0.22);
+  border-color: rgba(255,255,255,0.6);
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
+}
 
 /* Search Dropdown */
 .pub-search-dropdown {
@@ -283,14 +296,17 @@
   top: calc(100% + 8px);
   left: 0; right: 0;
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.06);
   overflow: hidden;
   z-index: 200;
   border: 1px solid #e2e8f0;
+  max-height: 420px;
+  overflow-y: auto;
+  text-align: left;
 }
 .pub-search-result-item {
-  padding: 14px 18px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -300,8 +316,13 @@
   transition: background 0.1s;
   border-bottom: 1px solid #f1f5f9;
 }
-.pub-search-result-item:hover { background: #f8fafc; }
-.pub-search-result-item:last-child { border-bottom: none; }
+.pub-search-result-item:hover,
+.pub-search-result-item.is-selected {
+  background: #f1f5f9;
+}
+.pub-search-result-item:last-child {
+  border-bottom: none;
+}
 
 /* ── Live Ticker ── */
 .pub-ticker {
