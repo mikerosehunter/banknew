@@ -124,21 +124,6 @@ export default function PublicLayout() {
         )}
       </header>
 
-      {/* Secondary Quick Bank Bar */}
-      <div className="pub-bank-bar">
-        <div className="pub-container pub-bank-bar-inner">
-          {BANKS_NAV.map(bank => (
-            <Link 
-              key={bank.slug} 
-              to={`/banks/${bank.slug}`}
-              className="pub-bank-bar-link"
-            >
-              {bank.label}
-            </Link>
-          ))}
-        </div>
-      </div>
-
       {/* Main Page Content */}
       <div className="pub-main-outlet" style={{ flex: 1, width: '100%', backgroundColor: '#ffffff' }}>
         <Outlet />
