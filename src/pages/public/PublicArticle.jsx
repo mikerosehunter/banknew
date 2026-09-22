@@ -286,6 +286,48 @@ export default function PublicArticle() {
       .catch(console.error);
   }, [slug]);
 
+  const scrollToSection = (e, targetId) => {
+    if (e && e.preventDefault) e.preventDefault();
+    
+    let el = document.getElementById(targetId);
+
+    if (!el) {
+      const allHeadings = document.querySelectorAll('h2[id], section[id]');
+      for (const h of allHeadings) {
+        const hid = h.id.toLowerCase();
+        if (targetId.includes('fix') || targetId.includes('step') || targetId.includes('solution')) {
+          if (hid.includes('fix') || hid.includes('step') || hid.includes('solution') || hid.includes('resolve') || hid.includes('how-to')) {
+            el = h; break;
+          }
+        } else if (targetId.includes('quick') || targetId.includes('reference') || targetId.includes('overview') || targetId.includes('matrix')) {
+          if (hid.includes('quick') || hid.includes('reference') || hid.includes('symptom') || hid.includes('matrix')) {
+            el = h; break;
+          }
+        } else if (targetId.includes('escalat') || targetId.includes('support') || targetId.includes('contact')) {
+          if (hid.includes('escalat') || hid.includes('support') || hid.includes('contact') || hid.includes('call')) {
+            el = h; break;
+          }
+        } else if (targetId.includes('faq')) {
+          if (hid === 'faq' || hid.includes('faq') || hid.includes('question')) {
+            el = h; break;
+          }
+        }
+      }
+    }
+
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.history.pushState(null, '', `#${el.id || targetId}`);
+    }
+  };
+
+  useEffect(() => {
+    if (article && window.location.hash) {
+      const id = window.location.hash.replace('#', '');
+      setTimeout(() => scrollToSection(null, id), 350);
+    }
+  }, [article]);
+
   if (loading && (!article || !article.content)) {
     return <ArticleSkeleton partialArticle={article} />;
   }
@@ -340,48 +382,6 @@ export default function PublicArticle() {
 
   const { mainMarkdown, faqs } = extractFAQ(article.content);
   const headings = extractHeadings(mainMarkdown);
-
-  const scrollToSection = (e, targetId) => {
-    if (e && e.preventDefault) e.preventDefault();
-    
-    let el = document.getElementById(targetId);
-
-    if (!el) {
-      const allHeadings = document.querySelectorAll('h2[id], section[id]');
-      for (const h of allHeadings) {
-        const hid = h.id.toLowerCase();
-        if (targetId.includes('fix') || targetId.includes('step') || targetId.includes('solution')) {
-          if (hid.includes('fix') || hid.includes('step') || hid.includes('solution') || hid.includes('resolve') || hid.includes('how-to')) {
-            el = h; break;
-          }
-        } else if (targetId.includes('quick') || targetId.includes('reference') || targetId.includes('overview') || targetId.includes('matrix')) {
-          if (hid.includes('quick') || hid.includes('reference') || hid.includes('symptom') || hid.includes('matrix')) {
-            el = h; break;
-          }
-        } else if (targetId.includes('escalat') || targetId.includes('support') || targetId.includes('contact')) {
-          if (hid.includes('escalat') || hid.includes('support') || hid.includes('contact') || hid.includes('call')) {
-            el = h; break;
-          }
-        } else if (targetId.includes('faq')) {
-          if (hid === 'faq' || hid.includes('faq') || hid.includes('question')) {
-            el = h; break;
-          }
-        }
-      }
-    }
-
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      window.history.pushState(null, '', `#${el.id || targetId}`);
-    }
-  };
-
-  useEffect(() => {
-    if (article && window.location.hash) {
-      const id = window.location.hash.replace('#', '');
-      setTimeout(() => scrollToSection(null, id), 350);
-    }
-  }, [article]);
 
   const schema = {
     "@context": "https://schema.org",

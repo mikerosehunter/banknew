@@ -10,8 +10,17 @@ async function fetchJSON(endpoint, options = {}) {
         ...options.headers,
       },
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'API Error');
+    const text = await res.text();
+    let data = {};
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch (parseErr) {
+        console.warn(`Non-JSON response from ${endpoint}:`, text.substring(0, 100));
+        data = {};
+      }
+    }
+    if (!res.ok) throw new Error(data.error || `API Error ${res.status}`);
     return data;
   } catch (err) {
     console.error(`API Error on ${endpoint}:`, err);
@@ -24,13 +33,31 @@ async function fetchJSON(endpoint, options = {}) {
 // In-memory Client Cache for 0ms transitions
 export const articleMemoryCache = new Map();
 let articlesListMemoryCache = null;
+let categoriesMemoryCache = null;
 
 export function getStats() {
   return fetchJSON('/stats');
 }
 
-export function getCategories() {
-  return fetchJSON('/categories');
+export async function getCategories() {
+  if (categoriesMemoryCache) return categoriesMemoryCache;
+  try {
+    const res = await fetch('/data/categories.json');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        categoriesMemoryCache = data;
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn('Edge CDN categories fetch failed, falling back to /api:', err);
+  }
+  const data = await fetchJSON('/categories');
+  if (Array.isArray(data)) {
+    categoriesMemoryCache = data;
+  }
+  return data || [];
 }
 
 export async function getArticles(params = {}) {

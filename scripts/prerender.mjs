@@ -82,6 +82,15 @@ async function prerender() {
   fs.writeFileSync(path.join(distDataDir, 'articles.json'), listJson, 'utf8');
   fs.writeFileSync(path.join(publicDataDir, 'articles.json'), listJson, 'utf8');
 
+  // 1b. Fetch categories and save categories.json for Edge CDN
+  const { data: catData } = await supabase.from('bw_categories').select('*').order('label');
+  const counts = {};
+  for (const a of articles || []) counts[a.category] = (counts[a.category] || 0) + 1;
+  const catsWithCounts = (catData || []).map(c => ({ ...c, count: counts[c.slug] || 0 }));
+  const catJson = JSON.stringify(catsWithCounts);
+  fs.writeFileSync(path.join(distDataDir, 'categories.json'), catJson, 'utf8');
+  fs.writeFileSync(path.join(publicDataDir, 'categories.json'), catJson, 'utf8');
+
   for (const article of articles) {
     const cleanTitle = (article.title || '').replace(/\[\d+\]/g, '').trim();
     const metaDesc = (article.meta_description || article.excerpt || '').replace(/"/g, '&quot;');

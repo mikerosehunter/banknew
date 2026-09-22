@@ -388,18 +388,18 @@ app.get(['/sitemap.xml', '/api/sitemap.xml'], async (req, res) => {
     xml += `  <url>\n    <loc>${baseUrl}/</loc>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n`;
     xml += `  <url>\n    <loc>${baseUrl}/about</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
     xml += `  <url>\n    <loc>${baseUrl}/contact</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
-    xml += `  <url>\n    <loc>${baseUrl}/banks</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.9</priority>\n  </url>\n`;
+    xml += `  <url>\n    <loc>${baseUrl}/banks</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
     xml += `  <url>\n    <loc>${baseUrl}/privacy-policy</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.5</priority>\n  </url>\n`;
     xml += `  <url>\n    <loc>${baseUrl}/disclaimer</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.5</priority>\n  </url>\n`;
 
     // 2. Categories & Banks
-    for (const t of topics) { xml += `  <url>\n    <loc>${baseUrl}/issues/${t.slug}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`; }
-    for (const b of banks) { xml += `  <url>\n    <loc>${baseUrl}/banks/${b.slug}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`; }
+    for (const t of topics) { xml += `  <url>\n    <loc>${baseUrl}/issues/${t.slug}</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>\n`; }
+    for (const b of banks) { xml += `  <url>\n    <loc>${baseUrl}/banks/${b.slug}</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>\n`; }
 
-    // 3. Articles
+    // 3. Troubleshooting Guides
     for (const a of (articles || [])) {
       const lastMod = a.updated_at || a.published_at || new Date().toISOString();
-      xml += `  <url>\n    <loc>${baseUrl}/guides/${a.slug}</loc>\n    <lastmod>${lastMod.split('T')[0]}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.6</priority>\n  </url>\n`;
+      xml += `  <url>\n    <loc>${baseUrl}/guides/${a.slug}</loc>\n    <lastmod>${lastMod.split('T')[0]}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.9</priority>\n  </url>\n`;
     }
 
     xml += `</urlset>`;
