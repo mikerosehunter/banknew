@@ -21,6 +21,10 @@ async function fetchJSON(endpoint, options = {}) {
 
 // ── Public API ──
 
+// In-memory Client Cache for 0ms transitions
+export const articleMemoryCache = new Map();
+let articlesListMemoryCache = null;
+
 export function getStats() {
   return fetchJSON('/stats');
 }
@@ -29,13 +33,111 @@ export function getCategories() {
   return fetchJSON('/categories');
 }
 
-export function getArticles(params = {}) {
+export async function getArticles(params = {}) {
+  // 1. Try ultra-fast Edge static JSON cache
+  try {
+    if (!articlesListMemoryCache) {
+      const res = await fetch('/data/articles.json');
+      if (res.ok) {
+        articlesListMemoryCache = await res.json();
+      }
+    }
+
+    if (articlesListMemoryCache && articlesListMemoryCache.articles) {
+      let list = articlesListMemoryCache.articles;
+
+      if (params.category && params.category !== 'all') {
+        const cat = params.category.toLowerCase();
+        list = list.filter(a => {
+          if (cat === 'bank-of-america') return a.bank_name === 'Bank of America';
+          if (cat === 'jpmorgan-chase-bank' || cat === 'chase-bank' || cat === 'chase') return a.bank_name === 'Chase Bank';
+          return (a.category && a.category.toLowerCase() === cat) || 
+                 (a.bank_name && a.bank_name.toLowerCase().includes(cat.replace(/-/g, ' ')));
+        });
+      }
+
+      if (params.search) {
+        const s = params.search.toLowerCase();
+        list = list.filter(a => a.title.toLowerCase().includes(s) || (a.excerpt && a.excerpt.toLowerCase().includes(s)));
+      }
+
+      const total = list.length;
+      const offset = +(params.offset || 0);
+      const limit = +(params.limit || list.length);
+      const paginated = list.slice(offset, offset + limit);
+
+      // Pre-warm article cache from summaries
+      for (const a of paginated) {
+        if (!articleMemoryCache.has(a.slug)) {
+          articleMemoryCache.set(a.slug, a);
+        }
+      }
+
+      return { articles: paginated, total };
+    }
+  } catch (err) {
+    console.warn('Edge CDN articles list failed, falling back to /api:', err);
+  }
+
+  // 2. Serverless API Fallback
   const query = new URLSearchParams(Object.entries(params).filter(([_, v]) => v !== undefined && v !== ''));
   return fetchJSON(`/articles?${query}`);
 }
 
-export function getArticle(idOrSlug) {
-  return fetchJSON(`/articles/${idOrSlug}`);
+export async function getArticle(idOrSlug) {
+  if (!idOrSlug) return null;
+
+  // 1. Return instantly if in memory (0ms latency)
+  if (articleMemoryCache.has(idOrSlug)) {
+    const cached = articleMemoryCache.get(idOrSlug);
+    // If cache only has partial summary (no content), proceed to fetch full body
+    if (cached && cached.content) {
+      return cached;
+    }
+  }
+
+  // 2. Try ultra-fast Edge static JSON file (cached worldwide on CDN Edge, ~15-30ms)
+  try {
+    const res = await fetch(`/data/articles/${idOrSlug}.json`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.content) {
+        articleMemoryCache.set(idOrSlug, data);
+        if (data.slug) articleMemoryCache.set(data.slug, data);
+        if (data.id) articleMemoryCache.set(data.id, data);
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn(`Edge CDN article fetch failed for ${idOrSlug}, falling back to /api:`, err);
+  }
+
+  // 3. Fallback to Serverless API
+  const data = await fetchJSON(`/articles/${idOrSlug}`);
+  if (data) {
+    articleMemoryCache.set(idOrSlug, data);
+    if (data.slug) articleMemoryCache.set(data.slug, data);
+    if (data.id) articleMemoryCache.set(data.id, data);
+  }
+  return data;
+}
+
+export function prefetchArticle(idOrSlug) {
+  if (!idOrSlug || typeof window === 'undefined') return;
+  if (articleMemoryCache.has(idOrSlug)) {
+    const cached = articleMemoryCache.get(idOrSlug);
+    if (cached && cached.content) return;
+  }
+  fetch(`/data/articles/${idOrSlug}.json`)
+    .then(res => (res.ok ? res.json() : null))
+    .then(data => {
+      if (data && data.content) {
+        articleMemoryCache.set(idOrSlug, data);
+        if (data.slug) articleMemoryCache.set(data.slug, data);
+        if (data.id) articleMemoryCache.set(data.id, data);
+      }
+    })
+    .catch(() => {});
 }
 
 export function getBanks() {

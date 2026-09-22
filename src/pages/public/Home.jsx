@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getArticles, getCategories } from '../../lib/api';
+import { getArticles, getCategories, prefetchArticle } from '../../lib/api';
 import { Search, ArrowRight, TrendingUp, BookOpen, Shield, Zap } from 'lucide-react';
 
 // The 80 topic categories that get featured on the homepage
@@ -24,6 +24,8 @@ export default function Home() {
   const [topicCategories, setTopicCategories] = useState([]);
   const [bankCategories, setBankCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedBankFilter, setSelectedBankFilter] = useState('all');
+  const [visibleCount, setVisibleCount] = useState(12);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -57,7 +59,7 @@ export default function Home() {
 
   useEffect(() => {
     Promise.all([
-      getArticles({ limit: 8, status: 'published' }),
+      getArticles({ limit: 100, status: 'published' }),
       getCategories()
     ]).then(([artRes, catRes]) => {
       setArticles(artRes.articles || []);
@@ -91,8 +93,17 @@ export default function Home() {
     }
   };
 
-  const featuredArticle = articles[0] || null;
-  const recentArticles = articles.slice(1, 7);
+  const chaseCount = articles.filter(a => a.bank_name?.toLowerCase().includes('chase')).length;
+  const bofaCount = articles.filter(a => a.bank_name?.toLowerCase().includes('america')).length;
+
+  const filteredArticles = articles.filter(a => {
+    if (selectedBankFilter === 'chase') return a.bank_name?.toLowerCase().includes('chase');
+    if (selectedBankFilter === 'bofa') return a.bank_name?.toLowerCase().includes('america');
+    return true;
+  });
+
+  const featuredArticle = filteredArticles[0] || null;
+  const recentArticles = filteredArticles.slice(1, visibleCount);
 
   return (
     <div>
@@ -211,9 +222,67 @@ export default function Home() {
               </span>
             </h2>
 
+            {/* Quick Bank Filters */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => { setSelectedBankFilter('all'); setVisibleCount(12); }}
+                style={{
+                  padding: '7px 16px',
+                  borderRadius: '20px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  border: '1px solid',
+                  borderColor: selectedBankFilter === 'all' ? '#2563eb' : '#e2e8f0',
+                  background: selectedBankFilter === 'all' ? '#2563eb' : '#fff',
+                  color: selectedBankFilter === 'all' ? '#fff' : '#475569',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                All Guides ({articles.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => { setSelectedBankFilter('chase'); setVisibleCount(12); }}
+                style={{
+                  padding: '7px 16px',
+                  borderRadius: '20px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  border: '1px solid',
+                  borderColor: selectedBankFilter === 'chase' ? '#2563eb' : '#e2e8f0',
+                  background: selectedBankFilter === 'chase' ? '#2563eb' : '#fff',
+                  color: selectedBankFilter === 'chase' ? '#fff' : '#475569',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                Chase Bank ({chaseCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => { setSelectedBankFilter('bofa'); setVisibleCount(12); }}
+                style={{
+                  padding: '7px 16px',
+                  borderRadius: '20px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  border: '1px solid',
+                  borderColor: selectedBankFilter === 'bofa' ? '#2563eb' : '#e2e8f0',
+                  background: selectedBankFilter === 'bofa' ? '#2563eb' : '#fff',
+                  color: selectedBankFilter === 'bofa' ? '#fff' : '#475569',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                Bank of America ({bofaCount})
+              </button>
+            </div>
+
             {loading ? (
               <div style={{ opacity: 0.5, padding: '20px 0' }}>Loading articles...</div>
-            ) : articles.length === 0 ? (
+            ) : filteredArticles.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 20px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                 <div style={{ fontSize: '48px', marginBottom: '16px' }}>📝</div>
                 <h3 style={{ fontFamily: 'Merriweather, serif', color: '#0f172a', marginBottom: '8px' }}>Articles Coming Soon</h3>
@@ -223,9 +292,14 @@ export default function Home() {
               <div>
                 {/* Featured */}
                 {featuredArticle && (
-                  <Link to={`/guides/${featuredArticle.slug}`} style={{ display: 'block', textDecoration: 'none', marginBottom: '32px', background: 'linear-gradient(135deg, #eff6ff, #f0fdf4)', border: '1px solid #bfdbfe', borderRadius: '16px', padding: '28px', transition: 'all 0.2s' }}
-                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(37,99,235,0.15)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}>
+                  <Link
+                    to={`/guides/${featuredArticle.slug}`}
+                    state={{ article: featuredArticle }}
+                    onTouchStart={() => prefetchArticle(featuredArticle.slug)}
+                    style={{ display: 'block', textDecoration: 'none', marginBottom: '32px', background: 'linear-gradient(135deg, #eff6ff, #f0fdf4)', border: '1px solid #bfdbfe', borderRadius: '16px', padding: '28px', transition: 'all 0.2s' }}
+                    onMouseEnter={e => { prefetchArticle(featuredArticle.slug); e.currentTarget.style.boxShadow = '0 8px 32px rgba(37,99,235,0.15)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
+                  >
                     <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#2563eb', background: '#dbeafe', padding: '4px 12px', borderRadius: '20px' }}>Featured</span>
                     <h3 className="pub-article-title" style={{ fontSize: '22px', marginTop: '12px' }}>{featuredArticle.title}</h3>
                     <p className="pub-article-excerpt" style={{ fontSize: '15px' }}>{featuredArticle.excerpt || featuredArticle.meta_description}</p>
@@ -239,7 +313,14 @@ export default function Home() {
 
                 {/* Recent Articles */}
                 {recentArticles.map(a => (
-                  <Link key={a.id} to={`/guides/${a.slug}`} className="pub-article-card">
+                  <Link
+                    key={a.id}
+                    to={`/guides/${a.slug}`}
+                    state={{ article: a }}
+                    onMouseEnter={() => prefetchArticle(a.slug)}
+                    onTouchStart={() => prefetchArticle(a.slug)}
+                    className="pub-article-card"
+                  >
                     <div className="pub-article-img">
                       {a.category?.includes('login') ? '🔐' : a.category?.includes('app') ? '📱' : a.category?.includes('card') ? '💳' : a.category?.includes('transfer') ? '🔄' : '🏦'}
                     </div>
@@ -254,6 +335,32 @@ export default function Home() {
                     </div>
                   </Link>
                 ))}
+
+                {/* Load More Button */}
+                {visibleCount < filteredArticles.length && (
+                  <div style={{ textAlign: 'center', marginTop: '32px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCount(prev => prev + 12)}
+                      style={{
+                        padding: '12px 28px',
+                        background: '#fff',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '10px',
+                        color: '#1e40af',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.background = '#eff6ff'; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.background = '#fff'; }}
+                    >
+                      Load More Guides ({filteredArticles.length - visibleCount} remaining)
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </main>

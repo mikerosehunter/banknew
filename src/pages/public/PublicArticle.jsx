@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { 
@@ -11,19 +11,19 @@ import {
   Clock, 
   CheckCircle2, 
   ChevronRight, 
-  ChevronDown,
+  ChevronDown, 
   Lock, 
-  HelpCircle,
-  FileText,
-  Flame,
-  ArrowUpRight,
-  ThumbsUp,
-  ThumbsDown,
-  Sparkles,
-  Zap,
-  Check
+  HelpCircle, 
+  FileText, 
+  Flame, 
+  ArrowUpRight, 
+  ThumbsUp, 
+  ThumbsDown, 
+  Sparkles, 
+  Zap, 
+  Check 
 } from 'lucide-react';
-import { getArticle, getArticles, getCategories } from '../../lib/api';
+import { getArticle, getArticles, getCategories, articleMemoryCache } from '../../lib/api';
 
 // Helper to generate clean URL anchor slugs from heading text
 function slugifyHeading(text) {
@@ -103,23 +103,163 @@ function extractFAQ(content) {
   return { mainMarkdown, faqs };
 }
 
+// Helper to retrieve initial article data from memory or embedded SSR payload
+function getInitialArticle(slug, routerState) {
+  if (!slug) return null;
+  // 1. From Router navigation state if full article was passed
+  if (routerState && (routerState.slug === slug || routerState.id === slug)) {
+    if (routerState.content) {
+      articleMemoryCache.set(slug, routerState);
+    }
+    return routerState;
+  }
+  // 2. From client in-memory cache
+  if (articleMemoryCache.has(slug)) {
+    const cached = articleMemoryCache.get(slug);
+    if (cached) return cached;
+  }
+  // 3. From embedded __ARTICLE_DATA__ script in pre-rendered HTML
+  if (typeof document !== 'undefined') {
+    try {
+      const el = document.getElementById('__ARTICLE_DATA__');
+      if (el && el.textContent) {
+        const parsed = JSON.parse(el.textContent);
+        if (parsed && (parsed.slug === slug || parsed.id === slug)) {
+          articleMemoryCache.set(slug, parsed);
+          return parsed;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+  return null;
+}
+
+// Polished in-place skeleton that matches the exact article page structure
+function ArticleSkeleton({ partialArticle }) {
+  const cleanTitle = (partialArticle?.title || '').replace(/\[\d+\]/g, '').trim();
+  const bankName = partialArticle?.bank_name || 'Bank Help';
+
+  return (
+    <article className="fix-guide-page" style={{ backgroundColor: '#f8fafc', minHeight: '100vh', width: '100%' }}>
+      <section className="ymyl-disclaimer-banner" style={{ background: '#fffbeb', borderBottom: '1px solid #fef3c7', padding: '10px 24px' }}>
+        <div className="pub-container" style={{ display: 'flex', gap: '10px', alignItems: 'center', fontSize: '13px', color: '#92400e' }}>
+          <span>⚠️</span>
+          <p style={{ margin: 0 }}>
+            <strong>Independent Support Directory:</strong> BankLoginOnline is an educational technology support portal. Not affiliated with any bank.
+          </p>
+        </div>
+      </section>
+
+      <div className="pub-container" style={{ paddingTop: '28px', paddingBottom: '70px' }}>
+        {/* Breadcrumb skeleton */}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '24px', fontSize: '13px', color: '#64748b' }}>
+          <Link to="/" style={{ color: '#2563eb', textDecoration: 'none' }}>Home</Link>
+          <span style={{ color: '#cbd5e1' }}>/</span>
+          {partialArticle?.category ? (
+            <Link to={`/banks/${partialArticle.category}`} style={{ color: '#2563eb', textDecoration: 'none' }}>{bankName}</Link>
+          ) : (
+            <div style={{ width: '60px', height: '14px', background: '#e2e8f0', borderRadius: '4px', animation: 'pulse 1.5s infinite' }} />
+          )}
+          <span style={{ color: '#cbd5e1' }}>/</span>
+          {cleanTitle ? (
+            <span style={{ color: '#0f172a', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' }}>{cleanTitle}</span>
+          ) : (
+            <div style={{ width: '140px', height: '14px', background: '#e2e8f0', borderRadius: '4px', animation: 'pulse 1.5s infinite' }} />
+          )}
+        </div>
+
+        <div className="article-layout-grid">
+          <main className="article-card-main">
+            {/* Badges */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+              <span style={{ background: '#eff6ff', color: '#2563eb', padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: 600 }}>
+                {bankName}
+              </span>
+              <span style={{ background: '#f0fdf4', color: '#16a34a', padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: 600 }}>
+                Verified Solution
+              </span>
+            </div>
+
+            {/* Title */}
+            {cleanTitle ? (
+              <h1 className="article-headline" style={{ marginBottom: '16px' }}>{cleanTitle}</h1>
+            ) : (
+              <>
+                <div style={{ height: '34px', background: '#e2e8f0', borderRadius: '8px', marginBottom: '12px', width: '85%', animation: 'pulse 1.5s infinite' }} />
+                <div style={{ height: '34px', background: '#e2e8f0', borderRadius: '8px', marginBottom: '20px', width: '60%', animation: 'pulse 1.5s infinite' }} />
+              </>
+            )}
+
+            {/* Meta bar shimmer */}
+            <div style={{ height: '16px', background: '#f1f5f9', borderRadius: '4px', marginBottom: '24px', width: '45%', animation: 'pulse 1.5s infinite' }} />
+
+            {/* Takeaways Card Shimmer */}
+            <div style={{ height: '90px', background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)', borderRadius: '12px', border: '1px solid #bae6fd', marginBottom: '28px', animation: 'pulse 1.5s infinite' }} />
+
+            {/* Author Box Shimmer */}
+            <div style={{ height: '76px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '32px', animation: 'pulse 1.5s infinite' }} />
+
+            {/* Paragraph lines shimmer */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
+              <div style={{ height: '16px', background: '#f1f5f9', borderRadius: '4px', width: '100%', animation: 'pulse 1.5s infinite' }} />
+              <div style={{ height: '16px', background: '#f1f5f9', borderRadius: '4px', width: '95%', animation: 'pulse 1.5s infinite' }} />
+              <div style={{ height: '16px', background: '#f1f5f9', borderRadius: '4px', width: '90%', animation: 'pulse 1.5s infinite' }} />
+              <div style={{ height: '16px', background: '#f1f5f9', borderRadius: '4px', width: '75%', animation: 'pulse 1.5s infinite' }} />
+            </div>
+
+            <div style={{ height: '26px', background: '#e2e8f0', borderRadius: '6px', width: '50%', marginBottom: '16px', animation: 'pulse 1.5s infinite' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ height: '16px', background: '#f1f5f9', borderRadius: '4px', width: '98%', animation: 'pulse 1.5s infinite' }} />
+              <div style={{ height: '16px', background: '#f1f5f9', borderRadius: '4px', width: '92%', animation: 'pulse 1.5s infinite' }} />
+            </div>
+          </main>
+
+          <aside className="article-sidebar">
+            <div className="sidebar-card" style={{ height: '150px', animation: 'pulse 1.5s infinite' }} />
+            <div className="sidebar-card" style={{ height: '220px', animation: 'pulse 1.5s infinite' }} />
+          </aside>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default function PublicArticle() {
   const { slug } = useParams();
-  const [article, setArticle] = useState(null);
+  const location = useLocation();
+  const routerStateArticle = location.state?.article;
+
+  const initialArticle = getInitialArticle(slug, routerStateArticle);
+  const [article, setArticle] = useState(initialArticle);
   const [relatedArticles, setRelatedArticles] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialArticle || !initialArticle.content);
   const [openFaqIndex, setOpenFaqIndex] = useState(0); // first open by default
   const [feedbackVote, setFeedbackVote] = useState(null);
 
   useEffect(() => {
-    setLoading(true);
+    // Check if we already have the complete article in memory
+    const existing = getInitialArticle(slug, routerStateArticle);
+    if (existing && existing.content) {
+      setArticle(existing);
+      setLoading(false);
+    } else {
+      if (existing) setArticle(existing);
+      setLoading(true);
+    }
+
+    // Scroll to top on article change
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
     getArticle(slug)
       .then(data => {
-        setArticle(data);
-        
-        // Fetch related articles
         if (data) {
+          setArticle(data);
+          articleMemoryCache.set(slug, data);
+
+          // Fetch related articles
           getArticles({ limit: 6, category: data.category })
             .then(res => {
               const filtered = (res.articles || []).filter(a => a.slug !== slug);
@@ -129,7 +269,7 @@ export default function PublicArticle() {
         }
       })
       .catch(err => {
-        console.error(err);
+        console.error('Failed to load article:', err);
       })
       .finally(() => setLoading(false));
 
@@ -146,15 +286,11 @@ export default function PublicArticle() {
       .catch(console.error);
   }, [slug]);
 
-  if (loading) return (
-    <div style={{ minHeight: '75vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff', padding: '60px 20px', textAlign: 'center' }}>
-      <div style={{ display: 'inline-block', width: '36px', height: '36px', border: '3px solid #e2e8f0', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '16px' }}></div>
-      <p style={{ fontSize: '16px', fontWeight: 600, color: '#0f172a' }}>Loading troubleshooting guide...</p>
-      <p style={{ fontSize: '13px', color: '#64748b', marginTop: '6px' }}>Verifying diagnostic steps and security guidelines...</p>
-    </div>
-  );
+  if (loading && (!article || !article.content)) {
+    return <ArticleSkeleton partialArticle={article} />;
+  }
 
-  if (!article) return (
+  if (!article || !article.content) return (
     <div style={{ minHeight: '75vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff', padding: '60px 20px', textAlign: 'center' }}>
       <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '22px' }}>
         ⚠️

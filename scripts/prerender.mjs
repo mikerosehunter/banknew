@@ -59,7 +59,28 @@ async function prerender() {
     process.exit(1);
   }
 
-  console.log(`Found ${articles.length} published articles to prerender.`);
+  // Prepare static JSON data directories for CDN Edge Caching
+  const publicDataDir = path.join(rootDir, 'public', 'data');
+  const distDataDir = path.join(distDir, 'data');
+  fs.mkdirSync(path.join(publicDataDir, 'articles'), { recursive: true });
+  fs.mkdirSync(path.join(distDataDir, 'articles'), { recursive: true });
+
+  const articlesSummary = articles.map(a => ({
+    id: a.id,
+    title: (a.title || '').replace(/\[\d+\]/g, '').trim(),
+    slug: a.slug,
+    excerpt: a.excerpt || a.meta_description,
+    meta_description: a.meta_description || a.excerpt,
+    category: a.category,
+    bank_name: a.bank_name,
+    status: a.status,
+    created_at: a.created_at,
+    published_at: a.published_at || a.created_at
+  }));
+
+  const listJson = JSON.stringify({ articles: articlesSummary, total: articlesSummary.length });
+  fs.writeFileSync(path.join(distDataDir, 'articles.json'), listJson, 'utf8');
+  fs.writeFileSync(path.join(publicDataDir, 'articles.json'), listJson, 'utf8');
 
   for (const article of articles) {
     const cleanTitle = (article.title || '').replace(/\[\d+\]/g, '').trim();
@@ -67,6 +88,11 @@ async function prerender() {
     const publishedDate = article.published_at || article.created_at || new Date().toISOString();
     const updatedDate = article.updated_at || publishedDate;
     const bodyHtml = marked.parse(article.content || '');
+
+    // Save individual static JSON for ultra-fast CDN Edge delivery
+    const articleJson = JSON.stringify(article);
+    fs.writeFileSync(path.join(distDataDir, 'articles', `${article.slug}.json`), articleJson, 'utf8');
+    fs.writeFileSync(path.join(publicDataDir, 'articles', `${article.slug}.json`), articleJson, 'utf8');
 
     const words = (article.content || '').trim().split(/\s+/).length;
     const readTime = Math.max(1, Math.ceil(words / 225));
@@ -154,6 +180,10 @@ async function prerender() {
 
     // Inject prerendered content into <div id="root"></div>
     pageHtml = pageHtml.replace('<div id="root"></div>', `<div id="root">${serverRenderedContent}</div>`);
+
+    // Inject __ARTICLE_DATA__ JSON script before </body> for zero-latency client hydration
+    const articleDataScript = `\n    <script id="__ARTICLE_DATA__" type="application/json">${articleJson.replace(/</g, '\\u003c')}</script>\n  </body>`;
+    pageHtml = pageHtml.replace('</body>', articleDataScript);
 
     // Target paths:
     // 1. /article/<slug>/index.html
