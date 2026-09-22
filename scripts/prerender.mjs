@@ -104,32 +104,34 @@ async function prerender() {
 
     // Construct Server HTML injection into #root
     const serverRenderedContent = `
-      <div class="prerendered-content" style="max-width: 900px; margin: 0 auto; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #0f172a; line-height: 1.6;">
-        <nav aria-label="Breadcrumb" style="font-size: 14px; color: #64748b; margin-bottom: 24px;">
-          <a href="/" style="color: #2563eb; text-decoration: none;">Home</a> &gt;
-          <a href="/banks/${article.category || 'all'}" style="color: #2563eb; text-decoration: none;">${article.bank_name || 'Bank Help'}</a> &gt;
-          <span>${cleanTitle}</span>
-        </nav>
-        <header style="margin-bottom: 32px; border-bottom: 1px solid #e2e8f0; padding-bottom: 24px;">
-          <div style="display: flex; gap: 8px; margin-bottom: 12px; font-size: 12px; font-weight: 700;">
-            <span style="background: #eff6ff; color: #1d4ed8; padding: 3px 10px; border-radius: 9999px;">Technical Fix Guide</span>
-            <span style="background: #f0fdf4; color: #15803d; padding: 3px 10px; border-radius: 9999px;">Sourced &amp; Verified</span>
-            <span style="background: #f1f5f9; color: #475569; padding: 3px 10px; border-radius: 9999px;">${readTime} Min Read</span>
-          </div>
-          <h1 style="font-size: 32px; font-weight: 800; line-height: 1.25; margin-bottom: 16px; color: #0f172a;">${cleanTitle}</h1>
-          <div style="font-size: 14px; color: #64748b; display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
-            <span>By <a href="/about" style="color: #2563eb; text-decoration: none; font-weight: 700;">David Sterling, CISA</a></span>
-            <span>•</span>
-            <span>Fact-Checked by <a href="/about" style="color: #16a34a; text-decoration: none; font-weight: 600;">Elena Rostova, CISSP</a></span>
-            <span>•</span>
-            <span>Published: ${new Date(publishedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-            <span>•</span>
-            <span>Last Verified: ${new Date(updatedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-          </div>
-        </header>
-        <main class="article-body">
-          ${bodyHtml}
-        </main>
+      <div class="public-site" style="min-height: 100vh; background-color: #ffffff; color: #0f172a;">
+        <div class="prerendered-content" style="max-width: 900px; margin: 0 auto; padding: 32px 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #0f172a; line-height: 1.6;">
+          <nav aria-label="Breadcrumb" style="font-size: 13px; color: #64748b; margin-bottom: 24px;">
+            <a href="/" style="color: #2563eb; text-decoration: none;">Home</a> &gt;
+            <a href="/banks/${article.category || 'all'}" style="color: #2563eb; text-decoration: none;">${article.bank_name || 'Bank Help'}</a> &gt;
+            <span>${cleanTitle}</span>
+          </nav>
+          <header style="margin-bottom: 32px; border-bottom: 1px solid #e2e8f0; padding-bottom: 24px;">
+            <div style="display: flex; gap: 8px; margin-bottom: 12px; font-size: 12px; font-weight: 700; flex-wrap: wrap;">
+              <span style="background: #eff6ff; color: #1d4ed8; padding: 3px 10px; border-radius: 9999px;">Technical Fix Guide</span>
+              <span style="background: #f0fdf4; color: #15803d; padding: 3px 10px; border-radius: 9999px;">Sourced &amp; Verified</span>
+              <span style="background: #f1f5f9; color: #475569; padding: 3px 10px; border-radius: 9999px;">${readTime} Min Read</span>
+            </div>
+            <h1 style="font-size: clamp(24px, 4vw, 36px); font-weight: 800; line-height: 1.25; margin-bottom: 16px; color: #0f172a; word-break: break-word;">${cleanTitle}</h1>
+            <div style="font-size: 13px; color: #64748b; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+              <span>By <a href="/about" style="color: #2563eb; text-decoration: none; font-weight: 700;">David Sterling, CISA</a></span>
+              <span>•</span>
+              <span>Fact-Checked by <a href="/about" style="color: #16a34a; text-decoration: none; font-weight: 600;">Elena Rostova, CISSP</a></span>
+              <span>•</span>
+              <span>Published: ${new Date(publishedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+              <span>•</span>
+              <span>Last Verified: ${new Date(updatedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+            </div>
+          </header>
+          <main class="article-body" style="word-break: break-word;">
+            ${bodyHtml}
+          </main>
+        </div>
       </div>
     `;
 

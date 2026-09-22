@@ -119,7 +119,7 @@ export default function Disclaimer() {
               Your digital banking security is paramount. When resolving authentication hurdles:
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', marginTop: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '16px', marginTop: '16px' }}>
               <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', padding: '16px' }}>
                 <div style={{ color: '#991b1b', fontWeight: 700, fontSize: '14.5px', marginBottom: '6px' }}>Verify URL Security</div>
                 <div style={{ color: '#b91c1c', fontSize: '13.5px', lineHeight: 1.5 }}>

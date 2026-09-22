@@ -40,6 +40,8 @@ export default function App() {
           <Route path="privacy" element={<PrivacyPolicy />} />
           <Route path="disclaimer" element={<Disclaimer />} />
           <Route path="banking-disclaimer" element={<Disclaimer />} />
+          {/* Direct Article Route */}
+          <Route path=":slug" element={<PublicArticle />} />
         </Route>
 
         {/* Protected Admin Dashboard */}

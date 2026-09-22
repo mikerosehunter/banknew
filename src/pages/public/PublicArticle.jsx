@@ -147,17 +147,21 @@ export default function PublicArticle() {
   }, [slug]);
 
   if (loading) return (
-    <div className="pub-container" style={{ padding: '80px 24px', textAlign: 'center', color: '#64748b' }}>
-      <div style={{ display: 'inline-block', width: '32px', height: '32px', border: '3px solid #e2e8f0', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '16px' }}></div>
-      <p style={{ fontSize: '16px', fontWeight: 500 }}>Loading troubleshooting guide...</p>
+    <div style={{ minHeight: '75vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff', padding: '60px 20px', textAlign: 'center' }}>
+      <div style={{ display: 'inline-block', width: '36px', height: '36px', border: '3px solid #e2e8f0', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '16px' }}></div>
+      <p style={{ fontSize: '16px', fontWeight: 600, color: '#0f172a' }}>Loading troubleshooting guide...</p>
+      <p style={{ fontSize: '13px', color: '#64748b', marginTop: '6px' }}>Verifying diagnostic steps and security guidelines...</p>
     </div>
   );
 
   if (!article) return (
-    <div className="pub-container" style={{ padding: '100px 24px', textAlign: 'center' }}>
-      <h2 style={{ fontSize: '28px', color: '#0f172a', marginBottom: '16px' }}>Guide Not Found</h2>
-      <p style={{ color: '#64748b', marginBottom: '24px' }}>The requested troubleshooting article could not be located.</p>
-      <Link to="/" style={{ display: 'inline-block', background: '#2563eb', color: 'white', padding: '10px 24px', borderRadius: '8px', textDecoration: 'none', fontWeight: 600 }}>Return to Homepage</Link>
+    <div style={{ minHeight: '75vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff', padding: '60px 20px', textAlign: 'center' }}>
+      <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '22px' }}>
+        ⚠️
+      </div>
+      <h2 style={{ fontSize: '26px', color: '#0f172a', marginBottom: '12px', fontWeight: 800 }}>Guide Not Found</h2>
+      <p style={{ color: '#64748b', marginBottom: '24px', maxWidth: '420px', fontSize: '14.5px', lineHeight: 1.6 }}>The requested troubleshooting article could not be located or may have moved.</p>
+      <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#2563eb', color: 'white', padding: '10px 24px', borderRadius: '8px', textDecoration: 'none', fontWeight: 600, fontSize: '14px' }}>Return to Homepage</Link>
     </div>
   );
 
@@ -311,9 +315,9 @@ export default function PublicArticle() {
       }
 
       return (
-        <blockquote className={calloutClass} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-          <span style={{ fontSize: '18px', lineHeight: 1.2, marginTop: '2px', flexShrink: 0 }}>{icon}</span>
-          <div style={{ flex: 1 }}>{children}</div>
+        <blockquote className={calloutClass}>
+          <span className="callout-icon">{icon}</span>
+          <div className="callout-body">{children}</div>
         </blockquote>
       );
     },
@@ -332,7 +336,7 @@ export default function PublicArticle() {
       const id = slugifyHeading(textContent);
 
       return (
-        <h2 id={id} style={{ scrollMarginTop: '110px' }}>
+        <h2 id={id} style={{ scrollMarginTop: '110px', wordBreak: 'break-word' }}>
           {children}
         </h2>
       );
@@ -342,36 +346,13 @@ export default function PublicArticle() {
       const isNumbered = /^[0-9]+[\.\)]/.test(text) || text.startsWith('Step');
       
       return (
-        <div style={{ 
-          marginTop: '36px', 
-          marginBottom: '16px', 
-          padding: '12px 18px', 
-          background: '#f8fafc', 
-          border: '1px solid #e2e8f0', 
-          borderRadius: '10px',
-          borderLeft: '4px solid #2563eb',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
+        <div className="article-step-heading">
           {isNumbered && (
-            <span style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              width: '28px', 
-              height: '28px', 
-              borderRadius: '50%', 
-              background: '#2563eb', 
-              color: '#ffffff', 
-              fontSize: '13px', 
-              fontWeight: 800,
-              flexShrink: 0
-            }}>
+            <span className="step-num-badge">
               ✓
             </span>
           )}
-          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>
+          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0f172a', wordBreak: 'break-word', flex: 1 }}>
             {children}
           </h3>
         </div>
@@ -499,7 +480,7 @@ export default function PublicArticle() {
               )}
 
               {/* COMPLIANT E-E-A-T AUTHOR & FACT-CHECK CARD */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px', padding: '20px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '32px' }}>
+              <div className="author-reviewer-card">
                 {/* Author Info */}
                 <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
                   <img 

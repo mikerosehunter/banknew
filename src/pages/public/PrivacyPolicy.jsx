@@ -77,7 +77,7 @@ export default function PrivacyPolicy() {
               We do not require user accounts, logins, or paid subscriptions. You can access all articles and status dashboards without submitting personal identifiers. Information collected is limited to:
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', marginBottom: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '16px', marginBottom: '16px' }}>
               <div style={{ background: '#f8fafc', padding: '18px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
                 <h4 style={{ margin: '0 0 8px', color: '#1e293b', fontSize: '15px', fontWeight: 700 }}>A. Technical & Log Data</h4>
                 <p style={{ margin: 0, color: '#64748b', fontSize: '13.5px', lineHeight: 1.6 }}>

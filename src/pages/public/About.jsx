@@ -139,13 +139,13 @@ export default function About() {
             </h2>
           </div>
 
-          <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '16px', padding: '32px', boxShadow: '0 4px 16px rgba(15,23,42,0.04)', display: 'flex', gap: '28px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 16px rgba(15,23,42,0.04)', display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
             <img 
               src="/team/david-sterling.jpg" 
               alt="David Sterling, CISA"
-              style={{ width: '120px', height: '120px', borderRadius: '16px', objectFit: 'cover', flexShrink: 0, border: '3px solid #e2e8f0' }} 
+              style={{ width: '96px', height: '96px', borderRadius: '16px', objectFit: 'cover', flexShrink: 0, border: '3px solid #e2e8f0' }} 
             />
-            <div style={{ flex: 1, minWidth: '280px' }}>
+            <div style={{ flex: 1, minWidth: 'min(100%, 260px)' }}>
               <div style={{ display: 'inline-block', background: '#e0f2fe', color: '#0369a1', fontSize: '12px', fontWeight: 700, padding: '3px 10px', borderRadius: '6px', marginBottom: '8px' }}>
                 Founder & Lead Financial Systems Analyst
               </div>
@@ -155,7 +155,7 @@ export default function About() {
               <p style={{ color: '#475569', fontSize: '15px', lineHeight: 1.65, margin: '0 0 16px' }}>
                 David is a Certified Information Systems Auditor (CISA) with over 14 years of experience auditing core banking platforms, payment gateways, and enterprise Identity and Access Management (IAM) systems. Formerly an IT audit consultant for global financial institutions, David leads our research team in dissecting proprietary banking errors, biometric keychain token failures, and federal funds availability disputes.
               </p>
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', fontSize: '12.5px', color: '#0f172a', fontWeight: 600 }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', fontSize: '12px', color: '#0f172a', fontWeight: 600 }}>
                 <span style={{ background: '#f1f5f9', padding: '4px 10px', borderRadius: '6px' }}>✓ Certified Information Systems Auditor (ISACA)</span>
                 <span style={{ background: '#f1f5f9', padding: '4px 10px', borderRadius: '6px' }}>✓ Core Mainframe Ledger Forensics</span>
                 <span style={{ background: '#f1f5f9', padding: '4px 10px', borderRadius: '6px' }}>✓ Fedwire & NACHA Clearing Contributor</span>
@@ -176,7 +176,7 @@ export default function About() {
             Every guide published on BankLoginOnline is authored, peer-reviewed, and technically validated by our dedicated team of domain specialists.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '20px' }}>
             {TEAM_MEMBERS.map((member, idx) => (
               <div 
                 key={idx}
@@ -184,27 +184,27 @@ export default function About() {
                   background: '#ffffff', 
                   border: '1px solid #e2e8f0', 
                   borderRadius: '16px', 
-                  padding: '24px', 
+                  padding: '20px', 
                   boxShadow: '0 2px 10px rgba(15,23,42,0.02)',
                   display: 'flex',
                   flexDirection: 'column'
                 }}
               >
                 {/* Header: Photo + Name + Role */}
-                <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginBottom: '14px' }}>
                   <img 
                     src={member.photo} 
                     alt={member.name}
-                    style={{ width: '68px', height: '68px', borderRadius: '14px', objectFit: 'cover', flexShrink: 0, border: '2px solid #e2e8f0' }}
+                    style={{ width: '60px', height: '60px', borderRadius: '12px', objectFit: 'cover', flexShrink: 0, border: '2px solid #e2e8f0' }}
                   />
                   <div>
-                    <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0f172a', margin: '0 0 3px' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: '0 0 3px' }}>
                       {member.name}
                     </h3>
-                    <div style={{ color: '#2563eb', fontSize: '13px', fontWeight: 600, margin: '0 0 4px' }}>
+                    <div style={{ color: '#2563eb', fontSize: '12.5px', fontWeight: 600, margin: '0 0 4px' }}>
                       {member.role}
                     </div>
-                    <span style={{ display: 'inline-block', background: '#f1f5f9', color: '#475569', fontSize: '11.5px', fontWeight: 600, padding: '2px 8px', borderRadius: '4px' }}>
+                    <span style={{ display: 'inline-block', background: '#f1f5f9', color: '#475569', fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '4px' }}>
                       {member.badge}
                     </span>
                   </div>
@@ -220,7 +220,7 @@ export default function About() {
                   {member.expertise.map((tag, tIdx) => (
                     <span 
                       key={tIdx}
-                      style={{ background: '#eff6ff', color: '#1d4ed8', fontSize: '11.5px', fontWeight: 500, padding: '2px 8px', borderRadius: '4px' }}
+                      style={{ background: '#eff6ff', color: '#1d4ed8', fontSize: '11px', fontWeight: 500, padding: '2px 8px', borderRadius: '4px' }}
                     >
                       {tag}
                     </span>
@@ -232,7 +232,7 @@ export default function About() {
         </div>
 
         {/* Three Core Operating Principles */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '18px', marginBottom: '40px' }}>
           {/* Principle 1 */}
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '24px', boxShadow: '0 2px 8px rgba(15,23,42,0.02)' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>

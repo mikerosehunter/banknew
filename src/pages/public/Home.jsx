@@ -167,7 +167,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))', gap: '16px' }}>
             {loading ? (
               Array(12).fill(0).map((_, i) => (
                 <div key={i} style={{ background: '#fff', borderRadius: '12px', padding: '24px', border: '1px solid #e2e8f0', height: '110px', animation: 'pulse 1.5s infinite' }} />
