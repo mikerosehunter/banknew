@@ -118,6 +118,48 @@ export const TRIGGER_MAP = {
   ],
   'bank-of-america-online-banking-not-available-at-this-time': [
     'online banking is not available', 'temporarily unavailable'
+  ],
+  'bank-of-america-password-reset-loop-keeps-asking': [
+    'password reset loop', 'keeps asking to reset password', 'reset password again'
+  ],
+  'bank-of-america-business-personal-account-login-collision': [
+    'business and personal account login conflict', 'Business Advantage login collision', 'link personal and business accounts'
+  ],
+  'bank-of-america-credit-card-disappeared-from-app': [
+    'credit card disappeared from app', 'missing credit card from Bank of America app', 'credit card missing from dashboard'
+  ],
+  'does-bank-of-america-have-early-direct-deposit-rules': [
+    'early direct deposit rules', 'does Bank of America pay 2 days early', 'Bank of America early direct deposit'
+  ],
+  'bank-of-america-apple-pay-verification-required-contact-bank': [
+    'Apple Pay verification required', 'Google Wallet verification required', 'Apple Pay verification'
+  ],
+  'how-to-view-bank-of-america-debit-card-number-on-app': [
+    'view debit card number on app', 'check card number on Bank of America app', 'view card number without physical card'
+  ],
+  'bank-of-america-debit-card-activation-not-working': [
+    'debit card activation not working', 'activate Bank of America debit card', 'unable to activate debit card'
+  ],
+  'bank-of-america-atm-contactless-reader-tap-not-working': [
+    'ATM contactless reader not working', 'phone tap at Bank of America ATM', 'ATM tap to pay'
+  ],
+  'bank-of-america-quickbooks-plaid-error-350-sync-failed': [
+    'QuickBooks Error 350', 'Plaid Error 350', 'QuickBooks sync failed'
+  ],
+  'bank-of-america-zelle-transfer-limits-by-tier': [
+    'Zelle transfer limits by tier', 'Bank of America Zelle daily limit', 'Preferred Rewards Zelle limit'
+  ],
+  'bank-of-america-international-wire-status-in-review': [
+    'international wire in review', 'wire transfer pending verification', 'international wire status'
+  ],
+  'bank-of-america-app-developer-options-android-crash': [
+    'Developer Options crash', "app won't open with Developer Options", 'USB debugging Bank of America'
+  ],
+  'bank-of-america-mobile-deposit-camera-black-screen': [
+    'mobile deposit camera black screen', 'camera permission error mobile deposit', 'check deposit camera black screen'
+  ],
+  'bank-of-america-preferred-rewards-status-not-updating': [
+    'Preferred Rewards status not updating', 'Preferred Rewards tier delayed', 'Preferred Rewards missing benefits'
   ]
 };
 
