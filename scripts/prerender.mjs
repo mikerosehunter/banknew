@@ -36,8 +36,28 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+function extractFAQ(content) {
+  if (!content) return [];
+  const faqRegex = /###?\s*(?:FAQ|Frequently Asked Questions)[\s\S]*?(?=(?:^##\s|\Z))/im;
+  const match = content.match(faqRegex);
+  const faqs = [];
+  if (match) {
+    const faqBlock = match[0];
+    const qRegex = /###?\s*(.+?\?)\s*\n+([\s\S]*?)(?=(?:###?\s*.+?\?|\Z))/g;
+    let qMatch;
+    while ((qMatch = qRegex.exec(faqBlock)) !== null) {
+      const question = qMatch[1].trim();
+      const answer = qMatch[2].trim().replace(/\n+/g, ' ').replace(/"/g, '&quot;');
+      if (question && answer && !question.toLowerCase().includes('faq')) {
+        faqs.push({ question, answer });
+      }
+    }
+  }
+  return faqs;
+}
+
 async function prerender() {
-  console.log('🚀 Starting Pre-rendering for Hard Gate 8.0...');
+  console.log('🚀 Starting Pre-rendering & Technical SEO Generation...');
   const distDir = path.join(rootDir, 'dist');
   const indexHtmlPath = path.join(distDir, 'index.html');
 
@@ -52,12 +72,22 @@ async function prerender() {
   const { data: articles, error } = await supabase
     .from('bw_articles')
     .select('*')
-    .eq('status', 'published');
+    .eq('status', 'published')
+    .order('published_at', { ascending: false });
 
   if (error) {
     console.error('Error fetching articles from Supabase:', error);
     process.exit(1);
   }
+
+  // 2. Fetch categories and save categories.json for Edge CDN
+  const { data: catData } = await supabase.from('bw_categories').select('*').order('label');
+  const counts = {};
+  for (const a of articles || []) {
+    if (a.category) counts[a.category] = (counts[a.category] || 0) + 1;
+  }
+  const catsWithCounts = (catData || []).map(c => ({ ...c, count: counts[c.slug] || 0 }));
+  const activeCategories = catsWithCounts.filter(c => c.count > 0);
 
   // Prepare static JSON data directories for CDN Edge Caching
   const publicDataDir = path.join(rootDir, 'public', 'data');
@@ -82,20 +112,21 @@ async function prerender() {
   fs.writeFileSync(path.join(distDataDir, 'articles.json'), listJson, 'utf8');
   fs.writeFileSync(path.join(publicDataDir, 'articles.json'), listJson, 'utf8');
 
-  // 1b. Fetch categories and save categories.json for Edge CDN
-  const { data: catData } = await supabase.from('bw_categories').select('*').order('label');
-  const counts = {};
-  for (const a of articles || []) counts[a.category] = (counts[a.category] || 0) + 1;
-  const catsWithCounts = (catData || []).map(c => ({ ...c, count: counts[c.slug] || 0 }));
   const catJson = JSON.stringify(catsWithCounts);
   fs.writeFileSync(path.join(distDataDir, 'categories.json'), catJson, 'utf8');
   fs.writeFileSync(path.join(publicDataDir, 'categories.json'), catJson, 'utf8');
+
+  // ─────────────────────────────────────────────────────────────
+  // 3. Pre-render Individual Guides (/guides/<slug>/index.html)
+  // ─────────────────────────────────────────────────────────────
+  console.log(`📄 Pre-rendering ${articles.length} Troubleshooting Guides...`);
 
   for (const article of articles) {
     const cleanTitle = (article.title || '').replace(/\[\d+\]/g, '').trim();
     const metaDesc = (article.meta_description || article.excerpt || '').replace(/"/g, '&quot;');
     const publishedDate = article.published_at || article.created_at || new Date().toISOString();
     const updatedDate = article.updated_at || publishedDate;
+    const canonicalUrl = `https://bankloginonline.com/guides/${article.slug}`;
     const bodyHtml = marked.parse(article.content || '');
 
     // Save individual static JSON for ultra-fast CDN Edge delivery
@@ -105,15 +136,25 @@ async function prerender() {
 
     const words = (article.content || '').trim().split(/\s+/).length;
     const readTime = Math.max(1, Math.ceil(words / 225));
+    const faqs = extractFAQ(article.content);
 
-    const schema = {
-      "@context": "https://schema.org",
+    // TechArticle Schema
+    const articleSchema = {
       "@type": "TechArticle",
+      "@id": `${canonicalUrl}#article`,
       "headline": cleanTitle,
       "description": metaDesc,
+      "image": "https://bankloginonline.com/og-image.png",
+      "inLanguage": "en-US",
       "datePublished": publishedDate,
       "dateModified": updatedDate,
-      "mainEntityOfPage": `https://bankloginonline.com/article/${article.slug}`,
+      "mainEntityOfPage": canonicalUrl,
+      "isPartOf": {
+        "@type": "WebSite",
+        "@id": "https://bankloginonline.com/#website",
+        "name": "BankLoginOnline",
+        "url": "https://bankloginonline.com"
+      },
       "author": {
         "@type": "Person",
         "name": "David Sterling, CISA",
@@ -128,13 +169,64 @@ async function prerender() {
       },
       "publisher": {
         "@type": "Organization",
+        "@id": "https://bankloginonline.com/#organization",
         "name": "BankLoginOnline",
         "url": "https://bankloginonline.com",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://bankloginonline.com/logo.png"
+          "url": "https://bankloginonline.com/logo.png",
+          "width": 512,
+          "height": 512
         }
       }
+    };
+
+    // BreadcrumbList Schema
+    const breadcrumbSchema = {
+      "@type": "BreadcrumbList",
+      "@id": `${canonicalUrl}#breadcrumb`,
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://bankloginonline.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": article.bank_name || (article.category ? article.category.replace(/-/g, ' ') : "Troubleshooting Guides"),
+          "item": `https://bankloginonline.com/issues/${article.category || 'login-access-problems'}`
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": cleanTitle,
+          "item": canonicalUrl
+        }
+      ]
+    };
+
+    const graph = [articleSchema, breadcrumbSchema];
+
+    if (faqs.length > 0) {
+      graph.push({
+        "@type": "FAQPage",
+        "@id": `${canonicalUrl}#faq`,
+        "mainEntity": faqs.map(f => ({
+          "@type": "Question",
+          "name": f.question,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": f.answer
+          }
+        }))
+      });
+    }
+
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@graph": graph
     };
 
     // Construct Server HTML injection into #root
@@ -143,7 +235,7 @@ async function prerender() {
         <div class="prerendered-content" style="max-width: 900px; margin: 0 auto; padding: 32px 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #0f172a; line-height: 1.6;">
           <nav aria-label="Breadcrumb" style="font-size: 13px; color: #64748b; margin-bottom: 24px;">
             <a href="/" style="color: #2563eb; text-decoration: none;">Home</a> &gt;
-            <a href="/banks/${article.category || 'all'}" style="color: #2563eb; text-decoration: none;">${article.bank_name || 'Bank Help'}</a> &gt;
+            <a href="/issues/${article.category || 'login-access-problems'}" style="color: #2563eb; text-decoration: none;">${article.bank_name || 'Bank Help'}</a> &gt;
             <span>${cleanTitle}</span>
           </nav>
           <header style="margin-bottom: 32px; border-bottom: 1px solid #e2e8f0; padding-bottom: 24px;">
@@ -176,13 +268,16 @@ async function prerender() {
       .replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${metaDesc}" />`)
       .replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${cleanTitle} | BankLoginOnline" />`)
       .replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${metaDesc}" />`)
-      .replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="https://bankloginonline.com/article/${article.slug}" />`);
+      .replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${canonicalUrl}" />`)
+      .replace(/<meta property="og:type" content=".*?" \/>/, `<meta property="og:type" content="article" />`)
+      .replace(/<meta name="twitter:title" content=".*?" \/>/, `<meta name="twitter:title" content="${cleanTitle} | BankLoginOnline" />`)
+      .replace(/<meta name="twitter:description" content=".*?" \/>/, `<meta name="twitter:description" content="${metaDesc}" />`)
+      .replace(/<link rel="canonical" href=".*?" \/>/, `<link rel="canonical" href="${canonicalUrl}" />`);
 
-    // Add canonical & schema before </head>
+    // Add structured schema before </head>
     const headInjection = `
-    <link rel="canonical" href="https://bankloginonline.com/article/${article.slug}" />
     <script type="application/ld+json">
-    ${JSON.stringify(schema)}
+    ${JSON.stringify(jsonLd)}
     </script>
   </head>`;
     pageHtml = pageHtml.replace('</head>', headInjection);
@@ -194,28 +289,20 @@ async function prerender() {
     const articleDataScript = `\n    <script id="__ARTICLE_DATA__" type="application/json">${articleJson.replace(/</g, '\\u003c')}</script>\n  </body>`;
     pageHtml = pageHtml.replace('</body>', articleDataScript);
 
-    // Target paths:
-    // 1. /article/<slug>/index.html
-    // 2. /guides/<slug>/index.html
-    // 3. /<slug>/index.html
-    const pathsToSave = [
-      path.join(distDir, 'article', article.slug),
-      path.join(distDir, 'guides', article.slug),
-      path.join(distDir, article.slug)
-    ];
-
-    for (const p of pathsToSave) {
-      fs.mkdirSync(p, { recursive: true });
-      fs.writeFileSync(path.join(p, 'index.html'), pageHtml, 'utf8');
-    }
+    // Save only to /guides/<slug>/index.html
+    const guideDir = path.join(distDir, 'guides', article.slug);
+    fs.mkdirSync(guideDir, { recursive: true });
+    fs.writeFileSync(path.join(guideDir, 'index.html'), pageHtml, 'utf8');
   }
 
-  // 2. Prerender static pages: /about, /editorial-policy, /contact, /privacy-policy, /disclaimer
+  // ─────────────────────────────────────────────────────────────
+  // 4. Pre-render Core Static Pages (/about, /contact, etc.)
+  // ─────────────────────────────────────────────────────────────
   const staticPages = [
     {
       slug: 'about',
       title: 'About BankLoginOnline — Independent Banking Systems Research Desk',
-      desc: 'Learn about BankLoginOnline, our mission, domain research, and editorial standards for independent financial troubleshooting.'
+      desc: 'Learn about BankLoginOnline, our mission, banking security research, and editorial standards for independent financial troubleshooting.'
     },
     {
       slug: 'editorial-policy',
@@ -240,24 +327,199 @@ async function prerender() {
   ];
 
   for (const page of staticPages) {
+    const pageUrl = `https://bankloginonline.com/${page.slug}`;
     let pageHtml = baseHtml
       .replace(/<title>.*?<\/title>/, `<title>${page.title}</title>`)
       .replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${page.desc}" />`)
       .replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${page.title}" />`)
       .replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${page.desc}" />`)
-      .replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="https://bankloginonline.com/${page.slug}" />`);
-
-    const headInjection = `
-    <link rel="canonical" href="https://bankloginonline.com/${page.slug}" />
-  </head>`;
-    pageHtml = pageHtml.replace('</head>', headInjection);
+      .replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${pageUrl}" />`)
+      .replace(/<link rel="canonical" href=".*?" \/>/, `<link rel="canonical" href="${pageUrl}" />`);
 
     const p = path.join(distDir, page.slug);
     fs.mkdirSync(p, { recursive: true });
     fs.writeFileSync(path.join(p, 'index.html'), pageHtml, 'utf8');
   }
 
-  console.log(`✅ Pre-rendering complete! Generated static raw HTML for ${articles.length} articles and ${staticPages.length} core pages.`);
+  // ─────────────────────────────────────────────────────────────
+  // 5. Pre-render Active Categories (/issues/<slug>)
+  // ─────────────────────────────────────────────────────────────
+  console.log(`📁 Pre-rendering ${activeCategories.length} Active Category Hubs...`);
+
+  for (const cat of activeCategories) {
+    const catUrl = `https://bankloginonline.com/issues/${cat.slug}`;
+    const catTitle = `${cat.label} Troubleshooting Guides | BankLoginOnline`;
+    const catDesc = cat.description || `Browse verified troubleshooting and fix guides for ${cat.label} across US financial institutions.`;
+    const catArticles = articles.filter(a => a.category === cat.slug);
+
+    const catServerHtml = `
+      <div class="public-site" style="min-height: 100vh; background-color: #ffffff; color: #0f172a;">
+        <div style="max-width: 900px; margin: 0 auto; padding: 32px 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <nav aria-label="Breadcrumb" style="font-size: 13px; color: #64748b; margin-bottom: 24px;">
+            <a href="/" style="color: #2563eb; text-decoration: none;">Home</a> &gt;
+            <span>${cat.label}</span>
+          </nav>
+          <header style="margin-bottom: 32px; border-bottom: 1px solid #e2e8f0; padding-bottom: 24px;">
+            <h1 style="font-size: 32px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">${cat.label}</h1>
+            <p style="color: #64748b; font-size: 16px; margin: 0;">${catDesc}</p>
+          </header>
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            ${catArticles.map(a => `
+              <div style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; background: #fff;">
+                <h2 style="font-size: 18px; margin: 0 0 8px 0;"><a href="/guides/${a.slug}" style="color: #2563eb; text-decoration: none;">${(a.title || '').replace(/\[\d+\]/g, '').trim()}</a></h2>
+                <p style="color: #64748b; font-size: 14px; margin: 0 0 12px 0;">${a.excerpt || a.meta_description || ''}</p>
+                <div style="font-size: 12px; color: #94a3b8;">${a.bank_name ? `<span>${a.bank_name}</span> • ` : ''}<span>${new Date(a.published_at || a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span></div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+
+    const catBreadcrumb = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bankloginonline.com/" },
+        { "@type": "ListItem", "position": 2, "name": cat.label, "item": catUrl }
+      ]
+    };
+
+    let catPageHtml = baseHtml
+      .replace(/<title>.*?<\/title>/, `<title>${catTitle}</title>`)
+      .replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${catDesc}" />`)
+      .replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${catTitle}" />`)
+      .replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${catDesc}" />`)
+      .replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${catUrl}" />`)
+      .replace(/<link rel="canonical" href=".*?" \/>/, `<link rel="canonical" href="${catUrl}" />`)
+      .replace('</head>', `\n    <script type="application/ld+json">\n    ${JSON.stringify(catBreadcrumb)}\n    </script>\n  </head>`)
+      .replace('<div id="root"></div>', `<div id="root">${catServerHtml}</div>`);
+
+    const issueDir = path.join(distDir, 'issues', cat.slug);
+    fs.mkdirSync(issueDir, { recursive: true });
+    fs.writeFileSync(path.join(issueDir, 'index.html'), catPageHtml, 'utf8');
+
+    // Also support /banks/<slug> if category represents a bank
+    const bankDir = path.join(distDir, 'banks', cat.slug);
+    fs.mkdirSync(bankDir, { recursive: true });
+    fs.writeFileSync(path.join(bankDir, 'index.html'), catPageHtml, 'utf8');
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // 6. Pre-render the Homepage (dist/index.html)
+  // ─────────────────────────────────────────────────────────────
+  console.log('🏠 Pre-rendering Homepage (dist/index.html)...');
+
+  const homeSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://bankloginonline.com/#website",
+        "name": "BankLoginOnline",
+        "url": "https://bankloginonline.com/",
+        "description": "Independent troubleshooting guides for US bank login errors, mobile app crashes, and account access issues.",
+        "inLanguage": "en-US",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://bankloginonline.com/?q={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://bankloginonline.com/#organization",
+        "name": "BankLoginOnline",
+        "url": "https://bankloginonline.com/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://bankloginonline.com/logo.png",
+          "width": 512,
+          "height": 512
+        }
+      }
+    ]
+  };
+
+  const homeServerHtml = `
+    <div class="public-site" style="min-height: 100vh; background-color: #ffffff; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <section style="background: linear-gradient(135deg, #0b192c 0%, #1e3a8a 100%); color: white; padding: 60px 16px; text-align: center;">
+        <div style="max-width: 800px; margin: 0 auto;">
+          <h1 style="font-size: clamp(28px, 4vw, 44px); font-weight: 900; margin-bottom: 16px;">Fix Your Bank Login Problems</h1>
+          <p style="font-size: 18px; color: #cbd5e1; max-width: 600px; margin: 0 auto 32px;">Independent step-by-step troubleshooting guides for US bank login errors, mobile app crashes, and account access issues.</p>
+        </div>
+      </section>
+
+      <section style="max-width: 1100px; margin: 40px auto; padding: 0 16px;">
+        <h2 style="font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 24px;">Recently Updated Bank Troubleshooting Guides</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+          ${articles.slice(0, 36).map(a => `
+            <article style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; background: #fff; display: flex; flex-direction: column;">
+              <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #2563eb; margin-bottom: 6px;">${a.bank_name || 'Troubleshooting'}</div>
+              <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 8px 0; line-height: 1.35;">
+                <a href="/guides/${a.slug}" style="color: #0f172a; text-decoration: none;">${(a.title || '').replace(/\[\d+\]/g, '').trim()}</a>
+              </h3>
+              <p style="color: #64748b; font-size: 14px; margin: 0 0 16px 0; line-height: 1.5; flex: 1;">${a.excerpt || a.meta_description || ''}</p>
+              <div style="font-size: 12px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 12px;">
+                <span>${new Date(a.published_at || a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                <a href="/guides/${a.slug}" style="color: #2563eb; font-weight: 600; text-decoration: none;">Read fix &rarr;</a>
+              </div>
+            </article>
+          `).join('')}
+        </div>
+      </section>
+    </div>
+  `;
+
+  let homeHtml = baseHtml
+    .replace('<div id="root"></div>', `<div id="root">${homeServerHtml}</div>`)
+    .replace('</head>', `\n    <script type="application/ld+json">\n    ${JSON.stringify(homeSchema)}\n    </script>\n  </head>`);
+
+  fs.writeFileSync(indexHtmlPath, homeHtml, 'utf8');
+
+  // ─────────────────────────────────────────────────────────────
+  // 7. Generate Static Sitemap (dist/sitemap.xml & public/sitemap.xml)
+  // ─────────────────────────────────────────────────────────────
+  console.log('🗺️ Generating static sitemap.xml...');
+
+  const today = new Date().toISOString().split('T')[0];
+  let sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+  sitemapXml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+
+  // Homepage
+  sitemapXml += `  <url>\n    <loc>https://bankloginonline.com/</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n`;
+
+  // Core Static Pages
+  sitemapXml += `  <url>\n    <loc>https://bankloginonline.com/about</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
+  sitemapXml += `  <url>\n    <loc>https://bankloginonline.com/editorial-policy</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
+  sitemapXml += `  <url>\n    <loc>https://bankloginonline.com/contact</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.6</priority>\n  </url>\n`;
+  sitemapXml += `  <url>\n    <loc>https://bankloginonline.com/privacy-policy</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.5</priority>\n  </url>\n`;
+  sitemapXml += `  <url>\n    <loc>https://bankloginonline.com/disclaimer</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.5</priority>\n  </url>\n`;
+
+  // Active Categories Only (count > 0, NO empty soft 404 pages)
+  for (const cat of activeCategories) {
+    sitemapXml += `  <url>\n    <loc>https://bankloginonline.com/issues/${cat.slug}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+  }
+
+  // All Published Guides
+  for (const a of articles) {
+    const lastMod = (a.updated_at || a.published_at || a.created_at || today).split('T')[0];
+    sitemapXml += `  <url>\n    <loc>https://bankloginonline.com/guides/${a.slug}</loc>\n    <lastmod>${lastMod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.9</priority>\n  </url>\n`;
+  }
+
+  sitemapXml += `</urlset>`;
+
+  fs.writeFileSync(path.join(distDir, 'sitemap.xml'), sitemapXml, 'utf8');
+  fs.writeFileSync(path.join(rootDir, 'public', 'sitemap.xml'), sitemapXml, 'utf8');
+
+  console.log(`✅ Pre-rendering complete!`);
+  console.log(`   - ${articles.length} guides pre-rendered with @graph JSON-LD and /guides/ canonicals`);
+  console.log(`   - Homepage pre-rendered with WebSite & Organization schemas`);
+  console.log(`   - ${activeCategories.length} active category hubs pre-rendered`);
+  console.log(`   - Static sitemap.xml generated with ${1 + staticPages.length + activeCategories.length + articles.length} clean URLs.`);
 }
 
 prerender();

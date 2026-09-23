@@ -283,8 +283,34 @@ export default function PublicArticle() {
         const topicList = (cats || []).filter(c => TOPIC_SLUGS.includes(c.slug));
         setCategories(topicList.slice(0, 6));
       })
-      .catch(console.error);
   }, [slug]);
+
+  // Synchronize document title, meta description, and canonical link on client-side routing
+  useEffect(() => {
+    if (article) {
+      const clean = (article.title || '').replace(/\[\d+\]/g, '').trim();
+      document.title = `${clean} | BankLoginOnline`;
+
+      let metaDesc = document.querySelector('meta[name="description"]');
+      if (!metaDesc) {
+        metaDesc = document.createElement('meta');
+        metaDesc.name = 'description';
+        document.head.appendChild(metaDesc);
+      }
+      metaDesc.content = article.meta_description || article.excerpt || '';
+
+      let canonical = document.querySelector('link[rel="canonical"]');
+      if (!canonical) {
+        canonical = document.createElement('link');
+        canonical.rel = 'canonical';
+        document.head.appendChild(canonical);
+      }
+      canonical.href = `https://bankloginonline.com/guides/${article.slug}`;
+
+      let ogUrl = document.querySelector('meta[property="og:url"]');
+      if (ogUrl) ogUrl.content = `https://bankloginonline.com/guides/${article.slug}`;
+    }
+  }, [article]);
 
   const scrollToSection = (e, targetId) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -388,9 +414,16 @@ export default function PublicArticle() {
     "@type": "TechArticle",
     "headline": cleanTitle,
     "description": article.meta_description || article.excerpt,
+    "image": "https://bankloginonline.com/og-image.png",
+    "inLanguage": "en-US",
     "datePublished": publishedDate,
     "dateModified": updatedDate,
-    "mainEntityOfPage": `https://bankloginonline.com/article/${article.slug}`,
+    "mainEntityOfPage": `https://bankloginonline.com/guides/${article.slug}`,
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "BankLoginOnline",
+      "url": "https://bankloginonline.com"
+    },
     "author": {
       "@type": "Person",
       "name": author.name,
@@ -412,6 +445,31 @@ export default function PublicArticle() {
         "url": "https://bankloginonline.com/logo.png"
       }
     }
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://bankloginonline.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": article.bank_name || (article.category ? article.category.replace(/-/g, ' ') : "Troubleshooting"),
+        "item": `https://bankloginonline.com/issues/${article.category || 'login-access-problems'}`
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": cleanTitle,
+        "item": `https://bankloginonline.com/guides/${article.slug}`
+      }
+    ]
   };
 
   const faqSchema = faqs.length > 0 ? {
@@ -498,8 +556,10 @@ export default function PublicArticle() {
 
   return (
     <article className="fix-guide-page" style={{ background: '#f8fafc', minHeight: '100vh' }}>
-      {/* Schema */}
+      {/* Structured Data */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      {faqSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
 
       {/* 1. HIGH-VISIBILITY DISCLAIMER BANNER */}
       <section className="ymyl-disclaimer-banner" style={{ background: '#fffbeb', borderBottom: '1px solid #fef3c7', padding: '10px 24px' }}>

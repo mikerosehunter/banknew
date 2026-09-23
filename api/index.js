@@ -369,42 +369,43 @@ app.post('/api/generate', (req, res) => {
 app.get(['/sitemap.xml', '/api/sitemap.xml'], async (req, res) => {
   try {
     const baseUrl = 'https://bankloginonline.com';
+    const today = new Date().toISOString().split('T')[0];
     
-    const { data: allCats } = await supabase.from('bw_categories').select('slug');
-    const { data: articles } = await supabase.from('bw_articles').select('slug, updated_at, published_at').eq('status', 'published');
+    const { data: allCats } = await supabase.from('bw_categories').select('slug, label');
+    const { data: articles } = await supabase.from('bw_articles').select('slug, category, updated_at, published_at').eq('status', 'published');
 
-    const TOPIC_SLUGS = [
-      'login-access-problems', 'account-issues', 'mobile-app-problems', 
-      'security-verification-issues', 'card-atm-problems', 'payments-transactions'
-    ];
-    
-    const topics = (allCats || []).filter(c => TOPIC_SLUGS.includes(c.slug));
-    const banks = (allCats || []).filter(c => !TOPIC_SLUGS.includes(c.slug));
+    const counts = {};
+    for (const a of (articles || [])) {
+      if (a.category) counts[a.category] = (counts[a.category] || 0) + 1;
+    }
+    const activeCategories = (allCats || []).filter(c => (counts[c.slug] || 0) > 0);
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
     xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
     // 1. Homepage & Static Pages
-    xml += `  <url>\n    <loc>${baseUrl}/</loc>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n`;
-    xml += `  <url>\n    <loc>${baseUrl}/about</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
-    xml += `  <url>\n    <loc>${baseUrl}/contact</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
-    xml += `  <url>\n    <loc>${baseUrl}/banks</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
-    xml += `  <url>\n    <loc>${baseUrl}/privacy-policy</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.5</priority>\n  </url>\n`;
-    xml += `  <url>\n    <loc>${baseUrl}/disclaimer</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.5</priority>\n  </url>\n`;
+    xml += `  <url>\n    <loc>${baseUrl}/</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n`;
+    xml += `  <url>\n    <loc>${baseUrl}/about</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
+    xml += `  <url>\n    <loc>${baseUrl}/editorial-policy</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
+    xml += `  <url>\n    <loc>${baseUrl}/contact</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.6</priority>\n  </url>\n`;
+    xml += `  <url>\n    <loc>${baseUrl}/privacy-policy</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.5</priority>\n  </url>\n`;
+    xml += `  <url>\n    <loc>${baseUrl}/disclaimer</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.5</priority>\n  </url>\n`;
 
-    // 2. Categories & Banks
-    for (const t of topics) { xml += `  <url>\n    <loc>${baseUrl}/issues/${t.slug}</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>\n`; }
-    for (const b of banks) { xml += `  <url>\n    <loc>${baseUrl}/banks/${b.slug}</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>\n`; }
+    // 2. Active Categories Only (No 441 empty soft 404 pages)
+    for (const c of activeCategories) {
+      xml += `  <url>\n    <loc>${baseUrl}/issues/${c.slug}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+    }
 
     // 3. Troubleshooting Guides
     for (const a of (articles || [])) {
-      const lastMod = a.updated_at || a.published_at || new Date().toISOString();
-      xml += `  <url>\n    <loc>${baseUrl}/guides/${a.slug}</loc>\n    <lastmod>${lastMod.split('T')[0]}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.9</priority>\n  </url>\n`;
+      const lastMod = (a.updated_at || a.published_at || today).split('T')[0];
+      xml += `  <url>\n    <loc>${baseUrl}/guides/${a.slug}</loc>\n    <lastmod>${lastMod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.9</priority>\n  </url>\n`;
     }
 
     xml += `</urlset>`;
     
     res.header('Content-Type', 'application/xml');
+    res.header('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
     res.send(xml);
   } catch(e) { res.status(500).send('Error generating sitemap'); }
 });
