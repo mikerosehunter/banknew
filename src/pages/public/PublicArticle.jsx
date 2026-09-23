@@ -516,6 +516,21 @@ export default function PublicArticle() {
         </blockquote>
       );
     },
+    a({ href, children, ...props }) {
+      if (href && (href.startsWith('/') || href.includes('bankloginonline.com'))) {
+        const cleanPath = href.replace(/^https?:\/\/bankloginonline\.com/, '');
+        return (
+          <Link to={cleanPath} className="in-body-interlink" {...props}>
+            {children}
+          </Link>
+        );
+      }
+      return (
+        <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+          {children}
+        </a>
+      );
+    },
     table({ children }) {
       return (
         <div className="table-wrapper">

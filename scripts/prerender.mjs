@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
 import { marked } from 'marked';
 import { getSameBankRelated } from '../src/lib/relatedGuides.js';
+import { injectInBodyInterlinks } from '../src/lib/inBodyInterlinker.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -128,16 +129,20 @@ async function prerender() {
     const publishedDate = article.published_at || article.created_at || new Date().toISOString();
     const updatedDate = article.updated_at || publishedDate;
     const canonicalUrl = `https://bankloginonline.com/guides/${article.slug}`;
-    const bodyHtml = marked.parse(article.content || '');
+
+    // Inject smart same-bank in-body interlinks into article markdown
+    const enhancedContent = injectInBodyInterlinks(article.content || '', article, articles);
+    const bodyHtml = marked.parse(enhancedContent);
+    const enrichedArticle = { ...article, content: enhancedContent };
 
     // Save individual static JSON for ultra-fast CDN Edge delivery
-    const articleJson = JSON.stringify(article);
+    const articleJson = JSON.stringify(enrichedArticle);
     fs.writeFileSync(path.join(distDataDir, 'articles', `${article.slug}.json`), articleJson, 'utf8');
     fs.writeFileSync(path.join(publicDataDir, 'articles', `${article.slug}.json`), articleJson, 'utf8');
 
-    const words = (article.content || '').trim().split(/\s+/).length;
+    const words = (enhancedContent || '').trim().split(/\s+/).length;
     const readTime = Math.max(1, Math.ceil(words / 225));
-    const faqs = extractFAQ(article.content);
+    const faqs = extractFAQ(enhancedContent);
 
     // TechArticle Schema
     const articleSchema = {

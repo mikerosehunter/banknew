@@ -689,6 +689,28 @@
   color: #0c4a6e;
 }
 
+/* In-body Contextual Interlinks */
+.in-body-interlink {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: all 0.15s ease;
+}
+.in-body-interlink:hover {
+  color: #1d4ed8;
+  background-color: #eff6ff;
+  border-radius: 3px;
+}
+.callout-emerald .in-body-interlink {
+  color: #047857;
+  font-weight: 700;
+  text-decoration: underline;
+}
+.callout-emerald .in-body-interlink:hover {
+  color: #064e3b;
+}
+
 .pub-prose code { 
   background: #f1f5f9; 
   padding: 3px 7px; 
