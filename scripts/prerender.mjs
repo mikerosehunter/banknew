@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
 import { marked } from 'marked';
+import { getSameBankRelated } from '../src/lib/relatedGuides.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -229,6 +230,41 @@ async function prerender() {
       "@graph": graph
     };
 
+    // Generate Same-Bank Internal Links for Crawlers & Fast SSR
+    const sameBankGuides = getSameBankRelated(article, articles, 4);
+    let sameBankSectionHtml = '';
+    if (sameBankGuides.length > 0) {
+      const bankName = article.bank_name || 'Bank';
+      const cardsHtml = sameBankGuides.map(rel => {
+        const cleanRelTitle = (rel.title || '').replace(/\[\d+\]/g, '').trim();
+        const relDesc = (rel.meta_description || rel.excerpt || '').replace(/"/g, '&quot;');
+        return `
+              <a href="/guides/${rel.slug}" class="same-bank-card" style="display: block; padding: 18px 20px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; text-decoration: none; color: inherit;">
+                <span class="same-bank-card-badge" style="display: inline-block; font-size: 11px; font-weight: 700; color: #16a34a; background: #f0fdf4; padding: 2px 8px; border-radius: 4px; margin-bottom: 8px;">Verified Fix</span>
+                <h4 class="same-bank-card-title" style="margin: 0 0 8px 0; font-size: 15px; font-weight: 700; color: #0f172a; line-height: 1.4;">${cleanRelTitle}</h4>
+                <p class="same-bank-card-desc" style="margin: 0 0 12px 0; font-size: 13px; color: #64748b; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${relDesc}</p>
+                <div class="same-bank-card-footer" style="font-size: 13px; font-weight: 600; color: #2563eb;">
+                  Read step-by-step fix &rarr;
+                </div>
+              </a>`;
+      }).join('\n');
+
+      sameBankSectionHtml = `
+            <section class="same-bank-related-section" style="margin-top: 48px; padding-top: 36px; border-top: 2px solid #f1f5f9;">
+              <div class="same-bank-header" style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; flex-wrap: wrap; gap: 8px;">
+                <h3 class="same-bank-title" style="margin: 0; font-size: 20px; font-weight: 800; color: #0f172a;">
+                  <span>🏦</span> More ${bankName} Troubleshooting Guides
+                </h3>
+                <a href="/" class="same-bank-view-all" style="font-size: 13px; color: #2563eb; font-weight: 600; text-decoration: none;">
+                  Browse all guides &rarr;
+                </a>
+              </div>
+              <div class="same-bank-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                ${cardsHtml}
+              </div>
+            </section>`;
+    }
+
     // Construct Server HTML injection into #root
     const serverRenderedContent = `
       <div class="public-site" style="min-height: 100vh; background-color: #ffffff; color: #0f172a;">
@@ -257,6 +293,7 @@ async function prerender() {
           </header>
           <main class="article-body" style="word-break: break-word;">
             ${bodyHtml}
+            ${sameBankSectionHtml}
           </main>
         </div>
       </div>

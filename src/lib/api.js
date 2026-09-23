@@ -83,6 +83,11 @@ export async function getArticles(params = {}) {
         });
       }
 
+      if (params.bank_name) {
+        const b = params.bank_name.toLowerCase();
+        list = list.filter(a => (a.bank_name || '').toLowerCase().includes(b));
+      }
+
       if (params.search) {
         const s = params.search.toLowerCase();
         list = list.filter(a => a.title.toLowerCase().includes(s) || (a.excerpt && a.excerpt.toLowerCase().includes(s)));

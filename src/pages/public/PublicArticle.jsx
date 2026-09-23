@@ -24,6 +24,7 @@ import {
   Check 
 } from 'lucide-react';
 import { getArticle, getArticles, getCategories, articleMemoryCache } from '../../lib/api';
+import { getSameBankRelated } from '../../lib/relatedGuides';
 
 // Helper to generate clean URL anchor slugs from heading text
 function slugifyHeading(text) {
@@ -259,11 +260,11 @@ export default function PublicArticle() {
           setArticle(data);
           articleMemoryCache.set(slug, data);
 
-          // Fetch related articles
-          getArticles({ limit: 6, category: data.category })
+          // Fetch related same-bank articles with smart companion scoring
+          getArticles({ limit: 50, bank_name: data.bank_name })
             .then(res => {
-              const filtered = (res.articles || []).filter(a => a.slug !== slug);
-              setRelatedArticles(filtered.slice(0, 5));
+              const matched = getSameBankRelated(data, res.articles || [], 6);
+              setRelatedArticles(matched);
             })
             .catch(console.error);
         }
@@ -772,6 +773,38 @@ export default function PublicArticle() {
               </section>
             )}
 
+            {/* ════════ SAME-BANK RELATED TROUBLESHOOTING GUIDES ════════ */}
+            {relatedArticles.length > 0 && (
+              <section className="same-bank-related-section">
+                <div className="same-bank-header">
+                  <h3 className="same-bank-title">
+                    <span>🏦</span> More {article.bank_name || 'Bank'} Troubleshooting Guides
+                  </h3>
+                  <Link to="/" style={{ fontSize: '13px', color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}>
+                    Browse all guides &rarr;
+                  </Link>
+                </div>
+                <div className="same-bank-grid">
+                  {relatedArticles.slice(0, 4).map(rel => (
+                    <Link
+                      to={`/guides/${rel.slug}`}
+                      key={rel.slug || rel.id}
+                      className="same-bank-card"
+                      onMouseEnter={() => prefetchArticle(rel.slug)}
+                      onTouchStart={() => prefetchArticle(rel.slug)}
+                    >
+                      <span className="same-bank-card-badge">Verified Fix</span>
+                      <h4 className="same-bank-card-title">{(rel.title || '').replace(/\[\d+\]/g, '').trim()}</h4>
+                      <p className="same-bank-card-desc">{rel.excerpt || rel.meta_description}</p>
+                      <div className="same-bank-card-footer">
+                        Read step-by-step fix &rarr;
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {/* ════════ DOMAIN EXPERT AUTHOR PROFILE CARD ════════ */}
             <div style={{ marginTop: '48px', padding: '28px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px' }}>
               <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
@@ -914,18 +947,18 @@ export default function PublicArticle() {
             <div className="sidebar-card">
               <div className="sidebar-card-title">
                 <BookOpen size={16} className="text-blue-600" />
-                <span>Related Fix Guides</span>
+                <span>{article.bank_name ? `More ${article.bank_name} Guides` : 'Related Fix Guides'}</span>
               </div>
 
               {relatedArticles.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   {relatedArticles.map((rel) => (
-                    <Link to={`/guides/${rel.slug}`} key={rel.id} className="sidebar-related-item">
+                    <Link to={`/guides/${rel.slug}`} key={rel.slug || rel.id} className="sidebar-related-item">
                       <div className="related-thumb">
                         <FileText size={18} />
                       </div>
                       <div className="related-content">
-                        <div className="related-title">{rel.title}</div>
+                        <div className="related-title">{(rel.title || '').replace(/\[\d+\]/g, '').trim()}</div>
                         <div className="related-meta">
                           <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <Clock size={11} /> 3 min read
