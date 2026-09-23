@@ -215,48 +215,63 @@ export function injectInBodyInterlinks(content, currentArticle, allArticles) {
     }
   }
 
-  // 2. Inject Editorial Callout Box
-  // Retrieve highest scoring companion guide from the same bank not yet linked
-  const companions = getSameBankRelated(currentArticle, allArticles, 10);
-  const topCompanion = companions.find(c => {
-    const b = (c.bank_name || '').toLowerCase().trim();
-    return b === currentBank && !linkedSlugs.has(c.slug);
-  }) || sameBankArticles.find(c => !linkedSlugs.has(c.slug));
+  // 2. Inject Editorial Callout Box (only if not already present)
+  if (!updatedContent.includes('> 💡 **Related')) {
+    const companions = getSameBankRelated(currentArticle, allArticles, 10);
+    const topCompanion = companions.find(c => {
+      const b = (c.bank_name || '').toLowerCase().trim();
+      return b === currentBank && !linkedSlugs.has(c.slug);
+    }) || sameBankArticles.find(c => !linkedSlugs.has(c.slug));
 
-  if (topCompanion) {
-    const bankName = currentArticle.bank_name || 'Bank';
-    const compTitle = cleanTitle(topCompanion.title);
-    const callout = `\n> 💡 **Related ${bankName} Solution:** Encountering related issues? Check our verified fix for [${compTitle}](/guides/${topCompanion.slug}).\n`;
+    if (topCompanion) {
+      const bankName = currentArticle.bank_name || 'Bank';
+      const compTitle = cleanTitle(topCompanion.title);
+      const callout = `\n> 💡 **Related ${bankName} Solution:** Encountering related issues? Check our verified fix for [${compTitle}](/guides/${topCompanion.slug}).\n`;
 
-    let paragraphs = updatedContent.split('\n\n');
-    let insertIndex = -1;
+      let paragraphs = updatedContent.split('\n\n');
+      let insertIndex = -1;
 
-    // Place after Step 2 or Step 3 in the fixes section
-    for (let i = 0; i < paragraphs.length; i++) {
-      if (/^###\s+[23]\.\s+/m.test(paragraphs[i])) {
-        insertIndex = i + 1;
-        break;
+      // Place after Step 2 or Step 3 in the fixes section
+      for (let i = 0; i < paragraphs.length; i++) {
+        if (/^###\s+[23]\.\s+/m.test(paragraphs[i])) {
+          insertIndex = i + 1;
+          break;
+        }
       }
-    }
 
-    if (insertIndex > 0 && insertIndex < paragraphs.length) {
-      paragraphs.splice(insertIndex, 0, callout);
-      linkedSlugs.add(topCompanion.slug);
-      updatedContent = paragraphs.join('\n\n');
-    } else {
-      // Fallback: place before FAQ section or near 60% of article
-      const faqIndex = paragraphs.findIndex(p => /^##\s+(?:FAQ|Frequently)/i.test(p));
-      if (faqIndex > 2) {
-        paragraphs.splice(faqIndex - 1, 0, callout);
+      if (insertIndex > 0 && insertIndex < paragraphs.length) {
+        paragraphs.splice(insertIndex, 0, callout);
         linkedSlugs.add(topCompanion.slug);
         updatedContent = paragraphs.join('\n\n');
       } else {
-        const mid = Math.floor(paragraphs.length * 0.6);
-        paragraphs.splice(mid, 0, callout);
-        linkedSlugs.add(topCompanion.slug);
-        updatedContent = paragraphs.join('\n\n');
+        // Fallback: place before FAQ section or near 60% of article
+        const faqIndex = paragraphs.findIndex(p => /^##\s+(?:FAQ|Frequently)/i.test(p));
+        if (faqIndex > 2) {
+          paragraphs.splice(faqIndex - 1, 0, callout);
+          linkedSlugs.add(topCompanion.slug);
+          updatedContent = paragraphs.join('\n\n');
+        } else {
+          const mid = Math.floor(paragraphs.length * 0.6);
+          paragraphs.splice(mid, 0, callout);
+          linkedSlugs.add(topCompanion.slug);
+          updatedContent = paragraphs.join('\n\n');
+        }
       }
     }
+  }
+
+  // 3. Ensure at most 1 callout exists (deduplicate if previously present)
+  const calloutRegex = />\s*💡\s*\*\*Related[^\n]+/g;
+  const calloutMatches = [...updatedContent.matchAll(calloutRegex)];
+  if (calloutMatches.length > 1) {
+    let first = true;
+    updatedContent = updatedContent.replace(calloutRegex, match => {
+      if (first) {
+        first = false;
+        return match;
+      }
+      return '';
+    }).replace(/\n{3,}/g, '\n\n');
   }
 
   return updatedContent;
