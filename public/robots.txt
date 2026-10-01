@@ -3,4 +3,5 @@ Allow: /
 Disallow: /admin/
 Disallow: /api/
 
+Host: https://bankloginonline.com
 Sitemap: https://bankloginonline.com/sitemap.xml

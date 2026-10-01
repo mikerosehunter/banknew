@@ -4,23 +4,17 @@ import { useState, useEffect } from 'react';
 import '../public.css';
 
 const BANKS_NAV = [
-  { label: 'Chase', slug: 'jpmorgan-chase-bank' },
-  { label: 'Bank of America', slug: 'bank-of-america' },
-  { label: 'Wells Fargo', slug: 'wells-fargo-bank' },
-  { label: 'Citibank', slug: 'citibank' },
-  { label: 'Capital One', slug: 'capital-one-bank' },
-  { label: 'U.S. Bank', slug: 'us-bank' },
-  { label: 'PNC Bank', slug: 'pnc-bank' },
-  { label: 'Chime', slug: 'chime' },
-  { label: 'Ally Bank', slug: 'ally-bank' }
+  { label: 'Chase Bank (44 Guides)', slug: 'chase' },
+  { label: 'Bank of America (44 Guides)', slug: 'bank-of-america' }
 ];
 
 const TOPICS_NAV = [
-  { label: 'Login Not Working', slug: 'login-access-problems' },
-  { label: 'App Crashing', slug: 'mobile-app-problems' },
-  { label: 'Transfer Failed', slug: 'failed-transaction-issues' },
-  { label: 'Account Locked', slug: 'account-closure-issues' },
-  { label: '2FA Problems', slug: 'security-verification-issues' }
+  { label: 'Account Access', slug: 'account-issues' },
+  { label: 'Login & Password', slug: 'login-access-problems' },
+  { label: 'Mobile App Errors', slug: 'mobile-app-problems' },
+  { label: 'Payments & Transfers', slug: 'payments-transactions' },
+  { label: 'Cards & ATM Issues', slug: 'card-atm-problems' },
+  { label: '2FA & Verification', slug: 'security-verification-issues' }
 ];
 
 export default function PublicLayout() {

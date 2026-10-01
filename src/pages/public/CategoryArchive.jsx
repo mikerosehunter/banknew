@@ -25,7 +25,20 @@ export default function CategoryArchive() {
 
     // Fetch category details
     getCategories().then(res => {
-      const cat = res.find(c => c.slug === slug);
+      let cat = res.find(c => c.slug === slug);
+      if (!cat) {
+        if (slug === 'chase' || slug === 'jpmorgan-chase-bank') {
+          cat = {
+            label: 'Chase Bank',
+            description: 'Comprehensive troubleshooting guides, mobile app error code fixes, and login access solutions for Chase Bank.'
+          };
+        } else if (slug === 'bank-of-america') {
+          cat = {
+            label: 'Bank of America',
+            description: 'Comprehensive troubleshooting guides, mobile app error code fixes, and login access solutions for Bank of America.'
+          };
+        }
+      }
       if (cat) setCategory(cat);
     }).finally(() => setLoading(false));
   }, [slug]);
