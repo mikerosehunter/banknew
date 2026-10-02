@@ -6,71 +6,60 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "functions": {
-    "api/index.js": {
-      "maxDuration": 30
-    }
+    "api/index.js": { "maxDuration": 30 },
+    "api/gone.js":  { "maxDuration": 5  }
   },
   "redirects": [
-    { "source": "/article/:slug", "destination": "/guides/:slug", "permanent": true },
-    { "source": "/banks/jpmorgan-chase-bank", "destination": "/banks/chase", "permanent": true },
-    { "source": "/banks/chase-bank", "destination": "/banks/chase", "permanent": true },
-    { "source": "/banks", "destination": "/#all-banks", "permanent": true }
+    { "source": "/article/:slug",           "destination": "/guides/:slug",       "permanent": true },
+    { "source": "/banks/jpmorgan-chase-bank","destination": "/banks/chase",        "permanent": true },
+    { "source": "/banks/chase-bank",         "destination": "/banks/chase",        "permanent": true },
+    { "source": "/banks",                    "destination": "/#all-banks",         "permanent": true },
+
+    { "source": "/issues/account-issues",          "destination": "/categories/account-issues",          "permanent": true },
+    { "source": "/issues/card-atm-problems",       "destination": "/categories/card-atm-problems",       "permanent": true },
+    { "source": "/issues/login-access-problems",   "destination": "/categories/login-access-problems",   "permanent": true },
+    { "source": "/issues/mobile-app-problems",     "destination": "/categories/mobile-app-problems",     "permanent": true },
+    { "source": "/issues/payments-transactions",   "destination": "/categories/payments-transactions",   "permanent": true },
+    { "source": "/issues/security-verification-issues","destination": "/categories/security-verification-issues","permanent": true },
+    { "source": "/issues/:slug",                   "destination": "/categories/:slug",                   "permanent": true },
+
+    { "source": "/disclaimer",    "destination": "/privacy-policy", "permanent": false }
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.js" },
-    { "source": "/((?!api/|data/).*)", "destination": "/index.html" }
+    { "source": "/banks/chase",           "destination": "/banks/chase/index.html" },
+    { "source": "/banks/bank-of-america", "destination": "/banks/bank-of-america/index.html" },
+    { "source": "/banks/wells-fargo",     "destination": "/banks/wells-fargo/index.html" },
+    { "source": "/banks/:slug",           "destination": "/api/gone.js" },
+    { "source": "/((?!api/|data/).*)",    "destination": "/index.html" }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        }
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options",        "value": "DENY" },
+        { "key": "Referrer-Policy",        "value": "strict-origin-when-cross-origin" }
       ]
     },
     {
       "source": "/data/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=300, stale-while-revalidate=86400"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=300, stale-while-revalidate=86400" }
       ]
     },
     {
       "source": "/sitemap.xml",
       "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/xml; charset=utf-8"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600, stale-while-revalidate=86400"
-        }
+        { "key": "Content-Type",  "value": "application/xml; charset=utf-8" },
+        { "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" }
       ]
     },
     {
       "source": "/robots.txt",
       "headers": [
-        {
-          "key": "Content-Type",
-          "value": "text/plain; charset=utf-8"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=60, stale-while-revalidate=600"
-        }
+        { "key": "Content-Type",  "value": "text/plain; charset=utf-8" },
+        { "key": "Cache-Control", "value": "public, max-age=60, stale-while-revalidate=600" }
       ]
     }
   ]
