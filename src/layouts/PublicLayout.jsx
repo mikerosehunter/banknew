@@ -6,7 +6,8 @@ import '../public.css';
 const BANKS_NAV = [
   { label: 'Chase Bank (46 Guides)', slug: 'chase' },
   { label: 'Bank of America (46 Guides)', slug: 'bank-of-america' },
-  { label: 'Wells Fargo (27 Guides)', slug: 'wells-fargo' }
+  { label: 'Wells Fargo (27 Guides)', slug: 'wells-fargo' },
+  { label: 'Capital One (20 Guides)', slug: 'capital-one' }
 ];
 
 const TOPICS_NAV = [

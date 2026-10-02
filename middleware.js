@@ -11,7 +11,7 @@ export const config = {
   matcher: '/banks/:slug*',
 };
 
-const ACTIVE_BANKS = new Set(['chase', 'bank-of-america', 'wells-fargo']);
+const ACTIVE_BANKS = new Set(['chase', 'bank-of-america', 'wells-fargo', 'capital-one']);
 
 const GONE_HTML = (bankName) => `<!DOCTYPE html>
 <html lang="en">
@@ -45,9 +45,10 @@ const GONE_HTML = (bankName) => `<!DOCTYPE html>
     <hr />
     <div class="links">
       <a href="/" class="p">🏠 Browse All Troubleshooting Guides</a>
-      <a href="/banks/chase" class="s">Chase Bank — 44 Fix Guides</a>
-      <a href="/banks/bank-of-america" class="s">Bank of America — 44 Fix Guides</a>
-      <a href="/banks/wells-fargo" class="s">Wells Fargo — 25 Fix Guides</a>
+      <a href="/banks/chase" class="s">Chase Bank — 46 Fix Guides</a>
+      <a href="/banks/bank-of-america" class="s">Bank of America — 46 Fix Guides</a>
+      <a href="/banks/wells-fargo" class="s">Wells Fargo — 27 Fix Guides</a>
+      <a href="/banks/capital-one" class="s">Capital One — 20 Fix Guides</a>
     </div>
   </div>
 </body>

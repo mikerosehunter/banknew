@@ -257,6 +257,68 @@ export const TRIGGER_MAP = {
   ],
   'wells-fargo-fargo-ai-assistant-not-responding-voice-text-error': [
     'Fargo virtual assistant not responding', 'Fargo AI assistant error', 'Wells Fargo Fargo assistant not working'
+  ],
+
+  // ── CAPITAL ONE GUIDES ──
+  'capital-one-360-checking-account-disappeared-after-zelle': [
+    '360 checking disappeared after Zelle', 'Capital One account disappeared after Zelle', 'Zelle account freeze Capital One'
+  ],
+  'capital-one-checking-account-disappeared-credit-card-still-showing': [
+    'checking account disappeared credit card still showing', 'Capital One checking missing from app', 'only credit card showing Capital One'
+  ],
+  'capital-one-app-unable-to-retrieve-account-details': [
+    'unable to retrieve account details', 'Capital One unable to retrieve account', 'account details unavailable Capital One'
+  ],
+  'capital-one-mobile-deposit-stuck-on-processing': [
+    'Capital One mobile deposit stuck', 'check deposit stuck on processing', 'Capital One deposit processing for days'
+  ],
+  'capital-one-direct-deposit-not-showing-on-payday': [
+    'direct deposit not showing on payday', 'Capital One direct deposit late', 'direct deposit missing Capital One'
+  ],
+  'capital-one-early-paycheck-stopped-showing': [
+    'early paycheck stopped showing', 'Get Paid Early not working', 'Capital One 2 days early direct deposit'
+  ],
+  'capital-one-zelle-payment-pending-under-review': [
+    'Capital One Zelle pending review', 'Zelle payment pending Capital One', 'Zelle under review Capital One'
+  ],
+  'capital-one-zelle-recipient-not-receiving-money': [
+    'Zelle recipient not receiving money', 'Zelle sent but not received Capital One', 'recipient did not get Zelle Capital One'
+  ],
+  'capital-one-external-account-verification-failed': [
+    'external account verification failed', 'Capital One trial deposits failed', 'Capital One link external bank failed'
+  ],
+  'capital-one-transfer-pending-for-days': [
+    'Capital One transfer pending for days', 'transfer stuck pending Capital One', 'ACH transfer delayed Capital One'
+  ],
+  'capital-one-available-balance-different-from-current-balance': [
+    'available balance different from current balance', 'available vs current balance Capital One', 'Capital One balance discrepancy'
+  ],
+  'capital-one-debit-card-declined-balance-sufficient': [
+    'debit card declined balance sufficient', 'Capital One debit card declined with money', '360 debit card declined'
+  ],
+  'capital-one-atm-charged-account-didnt-dispense-cash': [
+    "ATM charged account didn't give cash", 'Capital One ATM no cash debited', 'ATM failed to dispense cash Capital One'
+  ],
+  'capital-one-cash-deposit-not-showing-in-360-checking': [
+    'cash deposit not showing in 360 checking', 'CVS cash deposit Capital One missing', 'Walgreens cash deposit Capital One'
+  ],
+  'capital-one-credit-card-payment-made-available-credit-not-updated': [
+    'credit card payment made available credit not updated', 'available credit not updated Capital One', 'payment posted but available credit zero'
+  ],
+  'capital-one-app-balance-wont-load-blank-dashboard': [
+    'balance won’t load Capital One app', 'account recognizes account balance blank', 'Capital One app dashboard blank'
+  ],
+  'capital-one-verification-code-expired-before-login': [
+    'verification code expired before login', 'Capital One security code expired', '2FA code expired Capital One'
+  ],
+  'capital-one-password-reset-link-not-working': [
+    'password reset link not working', 'Capital One password reset loop', 'reset password link invalid Capital One'
+  ],
+  'capital-one-account-locked-too-many-login-attempts': [
+    'account locked too many login attempts', 'Capital One account locked', 'locked out Capital One online'
+  ],
+  'capital-one-mobile-deposit-rejected-photo-submission': [
+    'mobile deposit rejected after photo submission', 'Capital One check deposit photo rejected', 'deposit rejected image quality Capital One'
   ]
 };
 

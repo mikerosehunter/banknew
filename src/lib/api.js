@@ -79,6 +79,7 @@ export async function getArticles(params = {}) {
           if (cat === 'bank-of-america') return a.bank_name === 'Bank of America';
           if (cat === 'jpmorgan-chase-bank' || cat === 'chase-bank' || cat === 'chase') return a.bank_name === 'Chase Bank';
           if (cat === 'wells-fargo' || cat === 'wells-fargo-bank' || cat === 'wellsfargo') return a.bank_name === 'Wells Fargo';
+          if (cat === 'capital-one' || cat === 'capital-one-bank' || cat === 'capitalone') return a.bank_name === 'Capital One';
           return (a.category && a.category.toLowerCase() === cat) || 
                  (a.bank_name && a.bank_name.toLowerCase().includes(cat.replace(/-/g, ' ')));
         });

@@ -935,9 +935,10 @@ export default function Home() {
                 const isChase = c.slug === 'jpmorgan-chase-bank' || c.slug === 'chase';
                 const isBofa = c.slug === 'bank-of-america';
                 const isWells = c.slug === 'wells-fargo-bank' || c.slug === 'wells-fargo';
-                const isActive = isChase || isBofa || isWells;
-                const activeSlug = isChase ? 'chase' : isBofa ? 'bank-of-america' : 'wells-fargo';
-                const guideCount = isChase ? 46 : isBofa ? 46 : isWells ? 27 : 0;
+                const isCapOne = c.slug === 'capital-one-bank' || c.slug === 'capital-one';
+                const isActive = isChase || isBofa || isWells || isCapOne;
+                const activeSlug = isChase ? 'chase' : isBofa ? 'bank-of-america' : isWells ? 'wells-fargo' : 'capital-one';
+                const guideCount = isChase ? 46 : isBofa ? 46 : isWells ? 27 : isCapOne ? 20 : 0;
 
                 if (isActive) {
                   return (

@@ -39,6 +39,11 @@ export default function CategoryArchive() {
             label: 'Wells Fargo',
             description: 'Comprehensive troubleshooting guides, mobile app error code fixes, and login access solutions for Wells Fargo.'
           };
+        } else if (slug === 'capital-one' || slug === 'capital-one-bank') {
+          cat = {
+            label: 'Capital One',
+            description: 'Comprehensive troubleshooting guides, 360 checking error fixes, and mobile app login solutions for Capital One.'
+          };
         }
       }
       if (cat) setCategory(cat);
