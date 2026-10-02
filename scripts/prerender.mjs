@@ -929,6 +929,11 @@ async function prerender() {
   fs.writeFileSync(path.join(distDir, 'sitemap.xml'), sitemapXml, 'utf8');
   fs.writeFileSync(path.join(rootDir, 'public', 'sitemap.xml'), sitemapXml, 'utf8');
 
+  // Sync robots.txt to dist/
+  if (fs.existsSync(path.join(rootDir, 'public', 'robots.txt'))) {
+    fs.copyFileSync(path.join(rootDir, 'public', 'robots.txt'), path.join(distDir, 'robots.txt'));
+  }
+
   const totalSitemapUrls = 1 + bankHubs.length + activeCategories.length + staticPages.length + articles.length;
 
   console.log(`✅ Pre-rendering complete!`);

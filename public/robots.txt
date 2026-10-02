@@ -1,7 +1,97 @@
+# ==============================================================================
+# BankLoginOnline - robots.txt
+# Technical banking fix guides, error codes & recovery documentation
+# ==============================================================================
+
+# Default rule for all web crawlers
 User-agent: *
 Allow: /
+Allow: /data/
 Disallow: /admin/
 Disallow: /api/
 
-Host: https://bankloginonline.com
+# ------------------------------------------------------------------------------
+# Google Spiders (Search, Images, News, Video, Inspection & Gemini / AI)
+# ------------------------------------------------------------------------------
+User-agent: Googlebot
+User-agent: Googlebot-Image
+User-agent: Googlebot-News
+User-agent: Googlebot-Video
+User-agent: Google-InspectionTool
+User-agent: Google-Extended
+User-agent: Storebot-Google
+Allow: /
+Allow: /data/
+Disallow: /admin/
+Disallow: /api/
+
+# ------------------------------------------------------------------------------
+# Microsoft Bing & Copilot
+# ------------------------------------------------------------------------------
+User-agent: Bingbot
+User-agent: msnbot
+User-agent: BingPreview
+Allow: /
+Allow: /data/
+Disallow: /admin/
+Disallow: /api/
+
+# ------------------------------------------------------------------------------
+# OpenAI (ChatGPT, SearchGPT, GPTBot)
+# ------------------------------------------------------------------------------
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: OAI-SearchBot
+Allow: /
+Allow: /data/
+Disallow: /admin/
+Disallow: /api/
+
+# ------------------------------------------------------------------------------
+# Anthropic (Claude AI & Web Citations)
+# ------------------------------------------------------------------------------
+User-agent: ClaudeBot
+User-agent: Claude-Web
+User-agent: anthropic-ai
+Allow: /
+Allow: /data/
+Disallow: /admin/
+Disallow: /api/
+
+# ------------------------------------------------------------------------------
+# Perplexity AI Search Engine
+# ------------------------------------------------------------------------------
+User-agent: PerplexityBot
+Allow: /
+Allow: /data/
+Disallow: /admin/
+Disallow: /api/
+
+# ------------------------------------------------------------------------------
+# Apple Intelligence & Siri Suggestions
+# ------------------------------------------------------------------------------
+User-agent: Applebot
+User-agent: Applebot-Extended
+Allow: /
+Allow: /data/
+Disallow: /admin/
+Disallow: /api/
+
+# ------------------------------------------------------------------------------
+# Open LLM & Research Crawlers (Meta Llama, Mistral, Cohere, Common Crawl)
+# ------------------------------------------------------------------------------
+User-agent: CCBot
+User-agent: cohere-ai
+User-agent: Bytespider
+User-agent: Diffbot
+User-agent: FacebookBot
+User-agent: Meta-ExternalAgent
+Allow: /
+Allow: /data/
+Disallow: /admin/
+Disallow: /api/
+
+# ------------------------------------------------------------------------------
+# Sitemap Index
+# ------------------------------------------------------------------------------
 Sitemap: https://bankloginonline.com/sitemap.xml
