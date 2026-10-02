@@ -6,8 +6,8 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "functions": {
-    "api/index.js": { "maxDuration": 30 },
-    "api/gone.js":  { "maxDuration": 5  }
+    "api/index.js":          { "maxDuration": 30 },
+    "api/banks/[slug].js":   { "maxDuration": 5  }
   },
   "redirects": [
     { "source": "/article/:slug",           "destination": "/guides/:slug",       "permanent": true },
@@ -30,7 +30,7 @@
     { "source": "/banks/chase",           "destination": "/banks/chase/index.html" },
     { "source": "/banks/bank-of-america", "destination": "/banks/bank-of-america/index.html" },
     { "source": "/banks/wells-fargo",     "destination": "/banks/wells-fargo/index.html" },
-    { "source": "/banks/:slug",           "destination": "/api/gone.js" },
+    { "source": "/banks/:slug",           "destination": "/api/banks/:slug" },
     { "source": "/((?!api/|data/).*)",    "destination": "/index.html" }
   ],
   "headers": [
