@@ -73,6 +73,7 @@ function getGlobalHeaderHtml(activePath = '') {
           <a href="/" style="color: ${activePath === '/' ? '#2563eb' : '#475569'}; text-decoration: none;">Home</a>
           <a href="/banks/chase" style="color: ${activePath.includes('chase') ? '#2563eb' : '#475569'}; text-decoration: none;">Chase Guides</a>
           <a href="/banks/bank-of-america" style="color: ${activePath.includes('bank-of-america') ? '#2563eb' : '#475569'}; text-decoration: none;">Bank of America Guides</a>
+          <a href="/banks/wells-fargo" style="color: ${activePath.includes('wells-fargo') ? '#2563eb' : '#475569'}; text-decoration: none;">Wells Fargo Guides</a>
           <a href="/#categories" style="color: #475569; text-decoration: none;">Categories</a>
           <a href="/about" style="color: ${activePath === '/about' ? '#2563eb' : '#475569'}; text-decoration: none;">About</a>
           <a href="/editorial-policy" style="color: ${activePath === '/editorial-policy' ? '#2563eb' : '#475569'}; text-decoration: none;">Editorial Policy</a>
@@ -105,8 +106,9 @@ function getGlobalFooterHtml() {
         <div>
           <div style="font-size: 14px; font-weight: 700; text-transform: uppercase; color: #ffffff; letter-spacing: 0.05em; margin-bottom: 14px;">Major Bank Portals</div>
           <ul style="list-style: none; padding: 0; margin: 0; font-size: 13.5px; display: flex; flex-direction: column; gap: 10px;">
-            <li><a href="/banks/chase" style="color: #94a3b8; text-decoration: none;">Chase Bank Troubleshooting (44 Guides)</a></li>
-            <li><a href="/banks/bank-of-america" style="color: #94a3b8; text-decoration: none;">Bank of America Troubleshooting (44 Guides)</a></li>
+            <li><a href="/banks/chase" style="color: #94a3b8; text-decoration: none;">Chase Bank Troubleshooting</a></li>
+            <li><a href="/banks/bank-of-america" style="color: #94a3b8; text-decoration: none;">Bank of America Troubleshooting</a></li>
+            <li><a href="/banks/wells-fargo" style="color: #94a3b8; text-decoration: none;">Wells Fargo Troubleshooting</a></li>
           </ul>
         </div>
 
@@ -203,6 +205,14 @@ async function prerender() {
       title: 'Bank of America Troubleshooting Guides & Fixes | BankLoginOnline',
       desc: 'Complete index of 44 verified Bank of America troubleshooting guides, mobile app error code fixes, and login access solutions.',
       filter: a => (a.bank_name || '').toLowerCase().includes('america'),
+    },
+    {
+      slug: 'wells-fargo',
+      aliases: ['wells-fargo-bank', 'wellsfargo'],
+      name: 'Wells Fargo',
+      title: 'Wells Fargo Troubleshooting Guides & Error Code Solutions | BankLoginOnline',
+      desc: 'Complete index of 25 verified Wells Fargo troubleshooting guides, mobile app error code fixes, and account access solutions.',
+      filter: a => (a.bank_name || '').toLowerCase().includes('fargo') || (a.bank_name || '').toLowerCase().includes('wells'),
     }
   ];
 
@@ -245,9 +255,16 @@ async function prerender() {
     const updatedDate = article.updated_at || publishedDate;
     const canonicalUrl = `https://bankloginonline.com/guides/${article.slug}`;
 
-    const isChase = (article.bank_name || '').toLowerCase().includes('chase');
-    const bankSlug = isChase ? 'chase' : 'bank-of-america';
-    const bankLabel = isChase ? 'Chase Bank' : 'Bank of America';
+    let bankSlug = 'wells-fargo';
+    let bankLabel = 'Wells Fargo';
+    const bName = (article.bank_name || '').toLowerCase();
+    if (bName.includes('chase')) {
+      bankSlug = 'chase';
+      bankLabel = 'Chase Bank';
+    } else if (bName.includes('america')) {
+      bankSlug = 'bank-of-america';
+      bankLabel = 'Bank of America';
+    }
     const catSlug = article.category || 'login-access-problems';
     const catLabel = catLabelMap[catSlug] || 'Troubleshooting Guides';
 
@@ -713,6 +730,7 @@ async function prerender() {
 
   const chaseArticles = articles.filter(a => (a.bank_name || '').toLowerCase().includes('chase'));
   const bofaArticles = articles.filter(a => (a.bank_name || '').toLowerCase().includes('america'));
+  const wfArticles = articles.filter(a => (a.bank_name || '').toLowerCase().includes('fargo') || (a.bank_name || '').toLowerCase().includes('wells'));
 
   const homeSchema = {
     "@context": "https://schema.org",
@@ -804,6 +822,22 @@ async function prerender() {
               View all 44 Bank of America Guides &rarr;
             </a>
           </div>
+
+          <div style="border: 2px solid #d97706; border-radius: 16px; padding: 28px; background: #ffffff; box-shadow: 0 4px 20px rgba(217, 119, 6, 0.08); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <span style="font-size: 28px;">🐎</span>
+                <span style="background: #fffbeb; color: #b45309; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px;">${wfArticles.length} Guides Published</span>
+              </div>
+              <h3 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 8px 0;">Wells Fargo</h3>
+              <p style="color: #64748b; font-size: 14px; line-height: 1.5; margin: 0 0 16px 0;">
+                Step-by-step solutions for Wells Fargo Error 001, Advanced Access 2FA codes, account lockouts, Zelle holds, and Card Control failures.
+              </p>
+            </div>
+            <a href="/banks/wells-fargo" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #d97706; color: #ffffff; padding: 12px 20px; border-radius: 10px; font-weight: 700; text-decoration: none; font-size: 14px;">
+              View all ${wfArticles.length} Wells Fargo Guides &rarr;
+            </a>
+          </div>
         </div>
       </section>
 
@@ -878,6 +912,34 @@ async function prerender() {
           `).join('')}
         </div>
       </section>
+
+      <!-- Complete Directory: Wells Fargo (25 Guides) -->
+      ${wfArticles.length > 0 ? `
+      <section style="max-width: 1200px; margin: 56px auto 64px; padding: 0 20px; width: 100%;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">
+          <div>
+            <h2 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0;">Wells Fargo Troubleshooting Guides (${wfArticles.length} Solutions)</h2>
+            <p style="color: #64748b; font-size: 13.5px; margin: 0;">Direct access to all verified Wells Fargo guides.</p>
+          </div>
+          <a href="/banks/wells-fargo" style="color: #d97706; font-weight: 700; text-decoration: none; font-size: 14px;">View Hub &rarr;</a>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+          ${wfArticles.map(a => `
+            <article style="border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; background: #fff; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <span style="font-size: 11px; font-weight: 700; color: #d97706; text-transform: uppercase;">${catLabelMap[a.category] || 'Wells Fargo'}</span>
+                <h3 style="font-size: 15px; font-weight: 700; margin: 6px 0 8px 0; line-height: 1.4;">
+                  <a href="/guides/${a.slug}" style="color: #0f172a; text-decoration: none;">${(a.title || '').replace(/\[\d+\]/g, '').trim()}</a>
+                </h3>
+              </div>
+              <div style="font-size: 12px; color: #94a3b8; border-top: 1px solid #f8fafc; padding-top: 10px; margin-top: 8px;">
+                <a href="/guides/${a.slug}" style="color: #d97706; font-weight: 600; text-decoration: none;">Read fix guide &rarr;</a>
+              </div>
+            </article>
+          `).join('')}
+        </div>
+      </section>` : ''}
 
       ${getGlobalFooterHtml()}
     </div>

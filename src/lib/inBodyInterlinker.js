@@ -160,6 +160,83 @@ export const TRIGGER_MAP = {
   ],
   'bank-of-america-preferred-rewards-status-not-updating': [
     'Preferred Rewards status not updating', 'Preferred Rewards tier delayed', 'Preferred Rewards missing benefits'
+  ],
+
+  // ── WELLS FARGO GUIDES ──
+  'wells-fargo-error-code-001-login-failed': [
+    'Error Code 001', 'Error 001', 'Wells Fargo Error 001', 'Error Code 001 login failed'
+  ],
+  'wells-fargo-online-banking-temporarily-unavailable': [
+    'temporarily unavailable', 'online banking temporarily unavailable', 'Wells Fargo system outage'
+  ],
+  'wells-fargo-account-locked-security-reasons-unlock': [
+    'account locked for security reasons', 'Wells Fargo account locked', 'locked out of Wells Fargo', 'unlock Wells Fargo account'
+  ],
+  'wells-fargo-advanced-access-code-not-received-sms': [
+    'Advanced Access code not received', 'Advanced Access code', 'Wells Fargo verification code text', '2FA code not arriving'
+  ],
+  'wells-fargo-password-reset-keeps-looping': [
+    'password reset keeps looping', 'Wells Fargo password reset loop', 'forced password reset'
+  ],
+  'wells-fargo-app-biometrics-face-id-not-working': [
+    'Face ID not working', 'biometrics stopped working', 'Touch ID failed', 'biometric login'
+  ],
+  'wells-fargo-app-developer-options-android-crash': [
+    'Developer Options crash', 'USB debugging Wells Fargo', "app won't open Developer Options"
+  ],
+  'wells-fargo-mobile-deposit-camera-black-screen': [
+    'mobile deposit camera black screen', 'check deposit camera black screen', 'camera permission error'
+  ],
+  'wells-fargo-app-white-screen-wont-open': [
+    'app white screen', "Wells Fargo app won't open", 'app stuck on loading screen'
+  ],
+  'wells-fargo-app-notifications-not-working-ios-android': [
+    'app notifications not working', 'push notifications not arriving', 'Wells Fargo transaction alerts'
+  ],
+  'wells-fargo-zelle-payment-pending-under-review': [
+    'Zelle payment pending', 'Zelle under review', 'Zelle payment hold', 'Zelle transaction in review'
+  ],
+  'wells-fargo-zelle-transfer-limits-daily-monthly': [
+    'Zelle transfer limits', 'Wells Fargo Zelle daily limit', 'Zelle monthly limit', 'daily sending limit'
+  ],
+  'wells-fargo-zelle-number-not-eligible-error': [
+    'Zelle number not eligible', 'phone number not eligible for Zelle', 'uncertified phone number'
+  ],
+  'wells-fargo-wire-transfer-in-review-timeline': [
+    'wire transfer in review', 'Wells Fargo wire status in review', 'wire transfer verification'
+  ],
+  'wells-fargo-external-account-linking-trial-deposits-failed': [
+    'external account linking failed', 'trial deposits failed', 'micro-deposits not received'
+  ],
+  'wells-fargo-debit-card-chip-malfunction-atm-decline': [
+    'debit card chip malfunction', 'chip reader error', 'ATM chip malfunction', 'card chip declined'
+  ],
+  'wells-fargo-apple-pay-verification-required-contact-bank': [
+    'Apple Pay verification required', 'Google Wallet verification required', 'verification required contact bank'
+  ],
+  'wells-fargo-contactless-atm-tap-not-working': [
+    'contactless ATM tap not working', 'Wells Fargo ATM tap not working', 'phone tap at ATM'
+  ],
+  'wells-fargo-turn-card-on-off-feature-not-working': [
+    'turn card on off not working', 'Card Control feature error', 'unable to turn card back on'
+  ],
+  'wells-fargo-debit-card-activation-not-working': [
+    'debit card activation not working', 'activate Wells Fargo debit card', 'unable to activate card online'
+  ],
+  'wells-fargo-direct-deposit-early-rules': [
+    'early direct deposit rules', 'Early Pay Day rules', 'does Wells Fargo pay 2 days early'
+  ],
+  'wells-fargo-quickbooks-plaid-error-connection-failed': [
+    'QuickBooks connection failed', 'Plaid connection failed', 'Wells Fargo QuickBooks error'
+  ],
+  'wells-fargo-mobile-check-deposit-funds-availability-hold': [
+    'funds availability hold', 'mobile check deposit hold', 'check hold Regulation CC'
+  ],
+  'wells-fargo-available-balance-lower-than-on-deposit': [
+    'available balance lower than present balance', 'balance difference', 'pre-authorization hold'
+  ],
+  'wells-fargo-bill-pay-scheduled-payment-not-deducted': [
+    'bill pay scheduled payment not deducted', 'Bill Pay payment pending', 'duplicate Bill Pay cancel'
   ]
 };
 

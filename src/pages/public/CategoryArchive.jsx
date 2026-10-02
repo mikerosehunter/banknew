@@ -37,6 +37,11 @@ export default function CategoryArchive() {
             label: 'Bank of America',
             description: 'Comprehensive troubleshooting guides, mobile app error code fixes, and login access solutions for Bank of America.'
           };
+        } else if (slug === 'wells-fargo' || slug === 'wells-fargo-bank') {
+          cat = {
+            label: 'Wells Fargo',
+            description: 'Comprehensive troubleshooting guides, mobile app error code fixes, and login access solutions for Wells Fargo.'
+          };
         }
       }
       if (cat) setCategory(cat);
