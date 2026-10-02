@@ -803,7 +803,7 @@ async function prerender() {
               </p>
             </div>
             <a href="/banks/chase" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #2563eb; color: #ffffff; padding: 12px 20px; border-radius: 10px; font-weight: 700; text-decoration: none; font-size: 14px;">
-              View all 44 Chase Guides &rarr;
+              View all ${chaseArticles.length} Chase Guides &rarr;
             </a>
           </div>
 
@@ -819,7 +819,7 @@ async function prerender() {
               </p>
             </div>
             <a href="/banks/bank-of-america" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #dc2626; color: #ffffff; padding: 12px 20px; border-radius: 10px; font-weight: 700; text-decoration: none; font-size: 14px;">
-              View all 44 Bank of America Guides &rarr;
+              View all ${bofaArticles.length} Bank of America Guides &rarr;
             </a>
           </div>
 
@@ -859,11 +859,11 @@ async function prerender() {
         </div>
       </section>
 
-      <!-- Complete Directory: Chase Bank (44 Guides) -->
+      <!-- Complete Directory: Chase Bank Guides -->
       <section style="max-width: 1200px; margin: 56px auto 0; padding: 0 20px; width: 100%;">
         <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">
           <div>
-            <h2 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0;">Chase Bank Troubleshooting Guides (All 44 Solutions)</h2>
+            <h2 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0;">Chase Bank Troubleshooting Guides (All ${chaseArticles.length} Solutions)</h2>
             <p style="color: #64748b; font-size: 13.5px; margin: 0;">Direct access to all verified Chase guides.</p>
           </div>
           <a href="/banks/chase" style="color: #2563eb; font-weight: 700; text-decoration: none; font-size: 14px;">View Hub &rarr;</a>
@@ -886,13 +886,15 @@ async function prerender() {
         </div>
       </section>
 
-      <!-- Complete Directory: Bank of America (44 Guides) -->
-      <section style="max-width: 1200px; margin: 56px auto 64px; padding: 0 20px; width: 100%;">
+      <!-- Complete Directory: Bank of America Guides -->
+      <section style="max-width: 1200px; margin: 56px auto 0; padding: 0 20px; width: 100%;">
         <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">
           <div>
-            <h2 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0;">Bank of America Troubleshooting Guides (All 44 Solutions)</h2>
+            <h2 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0;">Bank of America Troubleshooting Guides (All ${bofaArticles.length} Solutions)</h2>
             <p style="color: #64748b; font-size: 13.5px; margin: 0;">Direct access to all verified Bank of America guides.</p>
           </div>
+          <a href="/banks/bank-of-america" style="color: #dc2626; font-weight: 700; text-decoration: none; font-size: 14px;">View Hub &rarr;</a>
+        </div>
           <a href="/banks/bank-of-america" style="color: #dc2626; font-weight: 700; text-decoration: none; font-size: 14px;">View Hub &rarr;</a>
         </div>
 

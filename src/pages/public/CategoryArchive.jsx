@@ -15,11 +15,8 @@ export default function CategoryArchive() {
     // Fetch articles for this category
     getArticles({ category: slug, status: 'published' }).then(res => {
       setArticles(res.articles || []);
-      // If no articles for this specific bank/issue, load popular guides as helpful fallback
       if (!res.articles || res.articles.length === 0) {
-        getArticles({ status: 'published', limit: 6 }).then(popRes => {
-          setPopularArticles(popRes.articles || []);
-        }).catch(console.error);
+        setPopularArticles([]);
       }
     }).catch(console.error);
 
@@ -95,38 +92,22 @@ export default function CategoryArchive() {
               </Link>
             </div>
 
-            {popularArticles.length > 0 && (
-              <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <ShieldCheck size={20} color="#2563eb" /> Active Guides for Chase & Bank of America
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
-                  {popularArticles.map(a => (
-                    <Link
-                      key={a.id}
-                      to={`/guides/${a.slug}`}
-                      state={{ article: a }}
-                      onMouseEnter={() => prefetchArticle(a.slug)}
-                      onTouchStart={() => prefetchArticle(a.slug)}
-                      className="pub-article-card"
-                      style={{ display: 'flex', gap: '20px', padding: '20px 24px', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', textDecoration: 'none', color: 'inherit' }}
-                    >
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
-                          <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#2563eb', background: '#eff6ff', padding: '2px 8px', borderRadius: '12px' }}>{a.bank_name || 'Bank Guide'}</span>
-                        </div>
-                        <h4 className="pub-article-title" style={{ fontSize: '17px', fontWeight: 700, marginBottom: '6px', color: '#0f172a' }}>{a.title}</h4>
-                        <p className="pub-article-excerpt" style={{ color: '#475569', fontSize: '13.5px', marginBottom: '10px', lineHeight: 1.5 }}>{a.excerpt || a.meta_description}</p>
-                        <div style={{ display: 'flex', gap: '12px', color: '#94a3b8', fontSize: '12px' }}>
-                          <span>{new Date(a.published_at || a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                          <span style={{ marginLeft: 'auto', color: '#2563eb', fontWeight: 600 }}>Read solution →</span>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+            <div style={{ marginTop: '24px', textAlign: 'center' }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Browse Active Bank Hubs
               </div>
-            )}
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Link to="/banks/chase" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#2563eb', color: '#fff', padding: '10px 18px', borderRadius: '8px', textDecoration: 'none', fontWeight: 600, fontSize: '13px' }}>
+                  Chase Bank Guides &rarr;
+                </Link>
+                <Link to="/banks/bank-of-america" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#2563eb', color: '#fff', padding: '10px 18px', borderRadius: '8px', textDecoration: 'none', fontWeight: 600, fontSize: '13px' }}>
+                  Bank of America Guides &rarr;
+                </Link>
+                <Link to="/banks/wells-fargo" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#2563eb', color: '#fff', padding: '10px 18px', borderRadius: '8px', textDecoration: 'none', fontWeight: 600, fontSize: '13px' }}>
+                  Wells Fargo Guides &rarr;
+                </Link>
+              </div>
+            </div>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '18px', maxWidth: '820px', margin: '0 auto' }}>

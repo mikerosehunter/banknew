@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import '../public.css';
 
 const BANKS_NAV = [
-  { label: 'Chase Bank (44 Guides)', slug: 'chase' },
-  { label: 'Bank of America (44 Guides)', slug: 'bank-of-america' },
-  { label: 'Wells Fargo (25 Guides)', slug: 'wells-fargo' }
+  { label: 'Chase Bank (46 Guides)', slug: 'chase' },
+  { label: 'Bank of America (46 Guides)', slug: 'bank-of-america' },
+  { label: 'Wells Fargo (27 Guides)', slug: 'wells-fargo' }
 ];
 
 const TOPICS_NAV = [

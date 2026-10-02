@@ -237,6 +237,26 @@ export const TRIGGER_MAP = {
   ],
   'wells-fargo-bill-pay-scheduled-payment-not-deducted': [
     'bill pay scheduled payment not deducted', 'Bill Pay payment pending', 'duplicate Bill Pay cancel'
+  ],
+
+  // ── LONG-TAIL ERROR ADDITIONS ──
+  'chase-travel-portal-booking-error-itinerary-failed': [
+    'Chase Travel portal error', 'Chase Travel booking failed', 'Ultimate Rewards travel error', 'cxLoyalty booking error'
+  ],
+  'chase-sapphire-priority-pass-digital-membership-card-not-generating': [
+    'Priority Pass digital card not generating', 'Priority Pass membership inactive', 'Chase Sapphire Priority Pass'
+  ],
+  'bank-of-america-error-code-err043-account-lookup-failed': [
+    'Error Code ERR043', 'ERR043 account lookup failed', 'Error ERR043'
+  ],
+  'bank-of-america-merrill-edge-single-sign-on-sso-failure': [
+    'Merrill Edge single sign-on failed', 'Merrill Edge SSO error', 'Merrill Edge login blank screen'
+  ],
+  'wells-fargo-error-code-c101-session-expired-during-transfer': [
+    'Error Code C101', 'Error C101 session expired', 'C101 transfer error'
+  ],
+  'wells-fargo-fargo-ai-assistant-not-responding-voice-text-error': [
+    'Fargo virtual assistant not responding', 'Fargo AI assistant error', 'Wells Fargo Fargo assistant not working'
   ]
 };
 

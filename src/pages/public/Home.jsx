@@ -931,13 +931,36 @@ export default function Home() {
           <div className="pub-bank-grid">
             {bankCategories
               .filter(c => activeLetter === 'Top' ? ['jpmorgan-chase-bank', 'bank-of-america', 'wells-fargo-bank', 'citibank', 'capital-one-bank', 'us-bank', 'pnc-bank', 'chime'].includes(c.slug) : c.label.toUpperCase().startsWith(activeLetter))
-              .map(c => (
-              <Link key={c.slug} to={`/banks/${c.slug}`} className="pub-bank-pill">
-                <span style={{ display: 'block', fontSize: '20px', marginBottom: '4px' }}>🏦</span>
-                {c.label}
-                {c.count > 0 && <span style={{ display: 'block', fontSize: '11px', color: '#2563eb', marginTop: '2px' }}>{c.count} guides</span>}
-              </Link>
-            ))}
+              .map(c => {
+                const isChase = c.slug === 'jpmorgan-chase-bank' || c.slug === 'chase';
+                const isBofa = c.slug === 'bank-of-america';
+                const isWells = c.slug === 'wells-fargo-bank' || c.slug === 'wells-fargo';
+                const isActive = isChase || isBofa || isWells;
+                const activeSlug = isChase ? 'chase' : isBofa ? 'bank-of-america' : 'wells-fargo';
+                const guideCount = isChase ? 46 : isBofa ? 46 : isWells ? 27 : 0;
+
+                if (isActive) {
+                  return (
+                    <Link key={c.slug} to={`/banks/${activeSlug}`} className="pub-bank-pill" style={{ borderColor: '#2563eb', background: '#f0fdf4' }}>
+                      <span style={{ display: 'block', fontSize: '20px', marginBottom: '4px' }}>🏦</span>
+                      <strong style={{ color: '#0f172a' }}>{c.label}</strong>
+                      <span style={{ display: 'block', fontSize: '11px', color: '#16a34a', fontWeight: 700, marginTop: '2px' }}>
+                        {guideCount} verified guides →
+                      </span>
+                    </Link>
+                  );
+                }
+
+                return (
+                  <div key={c.slug} className="pub-bank-pill" style={{ opacity: 0.7, cursor: 'default' }}>
+                    <span style={{ display: 'block', fontSize: '20px', marginBottom: '4px' }}>🏛️</span>
+                    <span style={{ color: '#475569' }}>{c.label}</span>
+                    <span style={{ display: 'block', fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>
+                      In Editorial Queue
+                    </span>
+                  </div>
+                );
+              })}
           </div>
         </div>
       </div>
